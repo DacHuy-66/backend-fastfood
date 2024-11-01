@@ -17,28 +17,38 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     // Người dùng hợp lệ
     $user = $result->fetch_assoc();
-
-    // Tạo API key
-    $api_key = bin2hex(random_bytes(32)); // Tạo một API key ngẫu nhiên
-
-    // Cập nhật API key vào cơ sở dữ liệu
-    $update_sql = "UPDATE users SET api_key = ? WHERE email = ?";
-    $update_stmt = $conn->prepare($update_sql);
-    $update_stmt->bind_param("ss", $api_key, $user['email']);
     
-    if ($update_stmt->execute()) {
-        // Trả về API key cho client
-        echo json_encode([
-            'ok' => true,
-            'success' => true,
-            'api_key' => $api_key,
-            'message' => 'API key created successfully.'
-        ]);
+    // Kiểm tra role của user
+    if ($user['role'] == '0') {
+        // Tạo API key
+        $api_key = bin2hex(random_bytes(32));
+
+        // Cập nhật API key vào cơ sở dữ liệu
+        $update_sql = "UPDATE users SET api_key = ? WHERE email = ?";
+        $update_stmt = $conn->prepare($update_sql);
+        $update_stmt->bind_param("ss", $api_key, $user['email']);
+        
+        if ($update_stmt->execute()) {
+            echo json_encode([
+                'ok' => true,
+                'success' => true,
+                'api_key' => $api_key,
+                'message' => 'API key created successfully.'
+            ]);
+        } else {
+            echo json_encode([
+                'ok' => false,
+                'success' => false,
+                'message' => 'Failed to update API key in the database.'
+            ]);
+        }
     } else {
+        // Trả về thông báo khi role không phải 0
         echo json_encode([
             'ok' => false,
+            'status' => 'block',
             'success' => false,
-            'message' => 'Failed to update API key in the database.'
+            'message' => 'User does not have permission to generate API key.'
         ]);
     }
 } else {

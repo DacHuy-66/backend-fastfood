@@ -13,6 +13,7 @@ $id_user = isset($id_user) ? $id_user : null;
 // Check if both API key and user ID are provided
 if (!$api_key || !$id_user) {
     echo json_encode([
+        'ok' => false,
         'success' => false,
         'message' => 'API key or user ID not provided.'
     ]);
@@ -31,18 +32,20 @@ if ($result->num_rows > 0) {
 
     // Read PUT request data (assuming it's JSON)
     $input = file_get_contents("php://input");
-    $data = json_decode($input, true);  // Convert JSON input to associative array
+    $data = json_decode($input, true);  
 
     // Get the new data from the parsed input
     $new_username = isset($data['username']) ? $data['username'] : null;
-    $new_phone = isset($data['phone']) ? $data['phone'] : null;
-    $new_address = isset($data['address']) ? $data['address'] : null;
+    // $new_phone = isset($data['phone']) ? $data['phone'] : null;
+    // $new_address = isset($data['address']) ? $data['address'] : null;
+    $new_avata = isset($data['avata']) ? $data['avata'] : null;
+
 
     // Check if all required fields are present
-    if ($new_username && $new_phone && $new_address) {
+    if ($new_username  && $new_avata) {
         // Prepare the update query
-        $update_stmt = $conn->prepare("UPDATE users SET username = ?, phone = ?, address = ? WHERE id = ?");
-        $update_stmt->bind_param("sssi", $new_username, $new_phone, $new_address, $id_user);
+        $update_stmt = $conn->prepare("UPDATE users SET username = ?, avata=? WHERE id = ?");
+        $update_stmt->bind_param("ssi", $new_username, $new_avata, $id_user);
 
         if ($update_stmt->execute()) {
         echo json_encode([
@@ -65,6 +68,7 @@ if ($result->num_rows > 0) {
         $update_stmt->close();
     } else {
     echo json_encode([
+        'ok' => false,
         'success' => false,
         'message' => 'Required fields are missing.'
     ]);
@@ -72,6 +76,7 @@ if ($result->num_rows > 0) {
     }
 } else {
     echo json_encode([
+        'ok' => false,
         'success' => false,
         'message' => 'Invalid API key or user ID.'
     ]);
