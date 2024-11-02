@@ -50,6 +50,28 @@ if ($result->num_rows > 0) {
         $addresses[] = $address;
     }
 
+    // Fetch user's reviews
+    $reviews_sql = "SELECT r.*, p.name as product_name 
+                   FROM reviews r 
+                   LEFT JOIN products p ON r.product_id = p.id 
+                   WHERE r.user_id = ?";
+    $reviews_stmt = $conn->prepare($reviews_sql);
+    $reviews_stmt->bind_param("s", $user['id']);
+    $reviews_stmt->execute();
+    $reviews_result = $reviews_stmt->get_result();
+
+    $reviews = [];
+    while ($review = $reviews_result->fetch_assoc()) {
+        $reviews[] = [
+            'id' => $review['id'],
+            'product_id' => $review['product_id'],
+            'product_name' => $review['product_name'],
+            'rating' => $review['rating'],
+            'comment' => $review['comment'],
+            'created_at' => $review['created_at']
+        ];
+    }
+
     // Prepare the response data structure
     $response = [
         'ok' => true,
@@ -60,7 +82,8 @@ if ($result->num_rows > 0) {
             'email' => $user['email'],
             'created_at' => $user['created_at'],
             'avata' => $avatar,
-            'addresses' => $addresses 
+            'addresses' => $addresses,
+            'reviews' => $reviews
         ]
     ];
 

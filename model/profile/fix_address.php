@@ -11,28 +11,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Get JSON input
-$data = json_decode(file_get_contents("php://input"), true);
+// Get ID from URL
+$url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$path_parts = explode('/', trim($url_path, '/'));
+$address_id = end($path_parts);
 
-// Validate that at least one field is provided
-if (!isset($data['address']) && !isset($data['phone']) && !isset($data['tengoinho'])) {
+if (!is_numeric($address_id)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'At least one field (address, phone, or tengoinho) must be provided for update.'
+        'message' => 'Invalid address ID format.'
     ]);
     http_response_code(400);
     exit;
 }
 
-// Get id from input and validate it
-$address_id = $data['id'] ?? null;
+// Get JSON input
+$data = json_decode(file_get_contents("php://input"), true);
 
-if (!$address_id) {
+// Validate that at least one field is provided
+if (!isset($data['address']) && !isset($data['phone']) && !isset($data['note'])) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Address ID is required.'
+        'message' => 'At least one field (address, phone, or note) must be provided for update.'
     ]);
     http_response_code(400);
     exit;
@@ -42,6 +44,14 @@ if (!$address_id) {
 $updateFields = [];
 $paramValues = [];
 $paramTypes = '';
+
+// Handle address update
+if (isset($data['address'])) {
+    $address = trim($data['address']);
+    $updateFields[] = "address = ?";
+    $paramValues[] = $address;
+    $paramTypes .= "s";
+}
 
 // Handle phone update
 if (isset($data['phone'])) {
@@ -60,39 +70,40 @@ if (isset($data['phone'])) {
     $paramTypes .= "s";
 }
 
-// Handle tengoinho update with uniqueness check
-if (isset($data['tengoinho'])) {
-    $tengoinho = trim($data['tengoinho']);
-    if (strlen($tengoinho) > 100) {
+// Handle note update with uniqueness check
+if (isset($data['note'])) {
+    $note = trim($data['note']);
+    if (strlen($note) > 100) {
         echo json_encode([
             'ok' => false,
             'success' => false,
-            'message' => 'Tengoinho must not exceed 100 characters.'
+            'message' => 'note must not exceed 100 characters.'
         ]);
         http_response_code(400);
         exit;
     }
 
-    // Check for duplicate tengoinho
-    $check_tengoinho_stmt = $conn->prepare("SELECT id FROM detail_address WHERE tengoinho = ? AND id != ?");
-    $check_tengoinho_stmt->bind_param("si", $tengoinho, $address_id);
-    $check_tengoinho_stmt->execute();
-    $duplicate_result = $check_tengoinho_stmt->get_result();
+    // Check for duplicate note
+    $check_note_stmt = $conn->prepare("SELECT id FROM detail_address WHERE note = ? AND id != ?");
+    $check_note_stmt->bind_param("si", $note, $address_id);
+    $check_note_stmt->execute();
+    $duplicate_result = $check_note_stmt->get_result();
 
     if ($duplicate_result->num_rows > 0) {
         echo json_encode([
             'ok' => false,
             'success' => false,
-            'message' => 'The specified tengoinho already exists. Please choose a different one.'
+            'message' => 'The specified note already exists. Please choose a different one.',
+            'status' => false
         ]);
         http_response_code(400);
-        $check_tengoinho_stmt->close();
+        $check_note_stmt->close();
         exit;
     }
-    $check_tengoinho_stmt->close();
+    $check_note_stmt->close();
 
-    $updateFields[] = "tengoinho = ?";
-    $paramValues[] = $tengoinho;
+    $updateFields[] = "note = ?";
+    $paramValues[] = $note;
     $paramTypes .= "s";
 }
 

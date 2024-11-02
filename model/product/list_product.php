@@ -1,4 +1,6 @@
 <?php
+// File: ./model/product/list_product.php
+
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: GET');
@@ -11,11 +13,25 @@ include_once __DIR__ . '/../../utils/helpers.php';
 $product = new Product($conn);
 
 try {
+    // Lấy các tham số phân trang
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-    $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
+    $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 40;
     
-    $result = $product->read($page, $limit);
-    $total_products = $product->getTotalCount();
+    // Lấy các tham số tìm kiếm và lọc
+    $search = isset($_GET['q']) ? trim($_GET['q']) : '';
+    
+    $filters = [
+        'type' => isset($_GET['type']) ? trim($_GET['type']) : '',
+        'min_price' => isset($_GET['min_price']) ? floatval($_GET['min_price']) : null,
+        'max_price' => isset($_GET['max_price']) ? floatval($_GET['max_price']) : null,
+        'status' => isset($_GET['status']) ? intval($_GET['status']) : null,
+        'sort_by' => isset($_GET['sort_by']) ? trim($_GET['sort_by']) : 'created_at',
+        'sort_order' => isset($_GET['sort_order']) && strtoupper($_GET['sort_order']) === 'ASC' ? 'ASC' : 'DESC'
+    ];
+    
+    // Lấy danh sách sản phẩm với các điều kiện
+    $result = $product->read($page, $limit, $search, $filters);
+    $total_products = $product->getTotalCount($search, $filters);
     $products_arr = [];
     
     // Prepare the average rating statement once
@@ -28,11 +44,7 @@ try {
         $avg_rating_result = $avg_rating_stmt->get_result()->fetch_assoc();
         $average_rating = $avg_rating_result['average_rating'] !== null ? round((float)$avg_rating_result['average_rating'], 1) : 0;
         
-        // Convert image URL if exists
-        $row['image_url'] = convertToWebUrl($row['image_url']);
-        
         // Add additional fields
-        $row['_id'] = generateRandomId();
         $row['average_rating'] = $average_rating;
         
         // Convert numeric fields to appropriate types
@@ -60,6 +72,15 @@ try {
                 'per_page' => $limit,
                 'current_page' => $page,
                 'total_pages' => ceil($total_products / $limit)
+            ],
+            'filters' => [
+                'search' => $search,
+                'type' => $filters['type'],
+                'min_price' => $filters['min_price'],
+                'max_price' => $filters['max_price'],
+                'status' => $filters['status'],
+                'sort_by' => $filters['sort_by'],
+                'sort_order' => $filters['sort_order']
             ]
         ]
     ];

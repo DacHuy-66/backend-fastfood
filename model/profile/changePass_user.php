@@ -6,22 +6,19 @@ include_once __DIR__ . '/../../config/db.php';
 $headers = apache_request_headers();
 $api_key = isset($headers['X-Api-Key']) ? $headers['X-Api-Key'] : null;
 
-// Assuming $id_user is received from the client
-$id_user = isset($id_user) ? $id_user : null;
-
-// Check if both API key and user ID are provided
-if (!$api_key || !$id_user) {
+// Check if API key is provided
+if (!$api_key) {
     echo json_encode([
         'success' => false,
-        'message' => 'API key or user ID not provided.'
+        'message' => 'API key not provided.'
     ]);
     http_response_code(400);
     exit;
 }
 
-// Validate API key and user ID and get current password
-$stmt = $conn->prepare("SELECT id, password FROM users WHERE id = ? AND api_key = ?");
-$stmt->bind_param("ss", $id_user, $api_key);
+// Validate API key and get user information
+$stmt = $conn->prepare("SELECT id, password FROM users WHERE api_key = ?");
+$stmt->bind_param("s", $api_key);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -49,8 +46,8 @@ if ($result->num_rows > 0) {
     // Direct comparison with stored password
     if ($current_password == $user['password']) {
         // Update with new password
-        $update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-        $update_stmt->bind_param("ss", $new_password, $id_user);
+        $update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE api_key = ?");
+        $update_stmt->bind_param("ss", $new_password, $api_key);
 
         if ($update_stmt->execute()) {
             echo json_encode([
@@ -70,9 +67,9 @@ if ($result->num_rows > 0) {
         $update_stmt->close();
     } else {
         echo json_encode([
-            'ok' => false,
+            'ok' => true,
             'success' => false,
-            'message' => 'Current password is incorrect.'
+            'message' => 'Mật khẩu hiện tại sai.'
         ]);
         http_response_code(401);
     }
@@ -80,7 +77,7 @@ if ($result->num_rows > 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Invalid API key or user ID.'
+        'message' => 'Invalid API key.'
     ]);
     http_response_code(401);
 }

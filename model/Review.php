@@ -9,8 +9,12 @@ class Review {
     public $product_id;
     public $rating;
     public $comment;
+    
+    public $image_1;
+    public $image_2;
+    public $image_3;
+    
     public $created_at;
-
 
     function generateRandomId($length = 24) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
@@ -20,6 +24,7 @@ class Review {
         }
         return $randomString;
     }
+
     // Constructor
     public function __construct($db) {
         $this->conn = $db;
@@ -32,6 +37,9 @@ class Review {
                     product_id = ?, 
                     rating = ?, 
                     comment = ?, 
+                    image_1 = ?, 
+                    image_2 = ?, 
+                    image_3 = ?, 
                     created_at = CURRENT_TIMESTAMP";
 
         $stmt = $this->conn->prepare($query);
@@ -40,12 +48,18 @@ class Review {
         $this->product_id = htmlspecialchars(strip_tags($this->product_id));
         $this->rating = htmlspecialchars(strip_tags($this->rating));
         $this->comment = htmlspecialchars(strip_tags($this->comment));
+        $this->image_1 = htmlspecialchars(strip_tags($this->image_1));
+        $this->image_2 = htmlspecialchars(strip_tags($this->image_2));
+        $this->image_3 = htmlspecialchars(strip_tags($this->image_3));
 
-        $stmt->bind_param("iiis", 
+        $stmt->bind_param("ssissss", 
             $this->user_id, 
             $this->product_id, 
             $this->rating, 
-            $this->comment
+            $this->comment,
+            $this->image_1,
+            $this->image_2,
+            $this->image_3
         );
 
         if($stmt->execute()) {
@@ -56,7 +70,7 @@ class Review {
         return false;
     }
 
-    // Đọc đánh giá với phân trang
+    // Read reviews with pagination
     public function read($page = 1, $limit = 10, $product_id = null) {
         $offset = ($page - 1) * $limit;
         
@@ -66,6 +80,9 @@ class Review {
                     r.product_id,
                     r.rating,
                     r.comment,
+                    r.image_1,
+                    r.image_2,
+                    r.image_3,
                     r.created_at,
                     u.username,
                     p.name as product_name
@@ -73,18 +90,18 @@ class Review {
                 LEFT JOIN users u ON r.user_id = u.id
                 LEFT JOIN products p ON r.product_id = p.id ";
         
-        // Thêm bộ lọc sản phẩm nếu được cung cấp
+        // Add product filter if provided
         if ($product_id) {
             $query .= "WHERE r.product_id = ? ";
         }
         
-        // Thêm thứ tự và phân trang
+        // Add order and pagination
         $query .= "ORDER BY r.created_at DESC LIMIT ? OFFSET ?";
 
         $stmt = $this->conn->prepare($query);
 
         if ($product_id) {
-            $stmt->bind_param("iii", $product_id, $limit, $offset);
+            $stmt->bind_param("sii", $product_id, $limit, $offset);
         } else {
             $stmt->bind_param("ii", $limit, $offset);
         }
@@ -93,14 +110,14 @@ class Review {
         return $stmt->get_result();
     }
 
-    // Nhận tổng số lượt đánh giá
+    // Get total number of reviews
     public function getTotalCount($product_id = null) {
         $query = "SELECT COUNT(*) as total FROM " . $this->table;
         
         if ($product_id) {
             $query .= " WHERE product_id = ?";
             $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("i", $product_id);
+            $stmt->bind_param("s", $product_id);
         } else {
             $stmt = $this->conn->prepare($query);
         }
@@ -110,7 +127,7 @@ class Review {
         return $row['total'];
     }
 
-    // Nhận đánh giá duy nhất
+    // Get single review
     public function show($id) {
         $query = "SELECT 
                     r.id,
@@ -118,6 +135,9 @@ class Review {
                     r.product_id,
                     r.rating,
                     r.comment,
+                    r.image_1,
+                    r.image_2,
+                    r.image_3,
                     r.created_at,
                     u.username,
                     p.name as product_name
@@ -135,27 +155,33 @@ class Review {
         return $stmt->get_result();
     }
 
-    // cập nhật review
+    // Update review
     public function update() {
         $query = "UPDATE " . $this->table . "
                 SET rating = ?,
-                    comment = ?
-                WHERE id = ? AND user_id = ?";
+                    comment = ?,
+                    image_1 = ?,
+                    image_2 = ?,
+                    image_3 = ?
+                WHERE id = ?";
 
         $stmt = $this->conn->prepare($query);
 
         $this->rating = htmlspecialchars(strip_tags($this->rating));
         $this->comment = htmlspecialchars(strip_tags($this->comment));
         $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->user_id = htmlspecialchars(strip_tags($this->user_id));
+        $this->image_1 = htmlspecialchars(strip_tags($this->image_1));
+        $this->image_2 = htmlspecialchars(strip_tags($this->image_2));
+        $this->image_3 = htmlspecialchars(strip_tags($this->image_3));
 
-        $stmt->bind_param("isii",
+        $stmt->bind_param("ississ",
             $this->rating,
             $this->comment,
+            $this->image_1,
+            $this->image_2,
+            $this->image_3,
             $this->id,
-            $this->user_id
         );
-
 
         if($stmt->execute()) {
             return true;
@@ -165,9 +191,8 @@ class Review {
         return false;
     }
 
-    // xóa review
+    // Delete review
     public function delete() {
-
         $query = "DELETE FROM " . $this->table . " WHERE id = ? AND user_id = ?";
 
         $stmt = $this->conn->prepare($query);
@@ -175,7 +200,7 @@ class Review {
         $this->id = htmlspecialchars(strip_tags($this->id));
         $this->user_id = htmlspecialchars(strip_tags($this->user_id));
 
-        $stmt->bind_param("ii", $this->id, $this->user_id);
+        $stmt->bind_param("is", $this->id, $this->user_id);
 
         if($stmt->execute()) {
             return true;
@@ -185,7 +210,7 @@ class Review {
         return false;
     }
 
-    // Lấy rating trung bình cho một sản phẩm
+    // Get average rating for a product
     public function getProductAverageRating($product_id) {
         $query = "SELECT AVG(rating) as average_rating 
                 FROM " . $this->table . " 
@@ -193,7 +218,7 @@ class Review {
 
         $stmt = $this->conn->prepare($query);
 
-        $stmt->bind_param("i", $product_id);
+        $stmt->bind_param("s", $product_id);
 
         $stmt->execute();
         $result = $stmt->get_result();
@@ -202,7 +227,7 @@ class Review {
         return $row['average_rating'] ? round($row['average_rating'], 1) : 0;
     }
 
-    // Nhận phân phối xếp hạng cho một sản phẩm
+    // Get rating distribution for a product
     public function getProductRatingDistribution($product_id) {
         $query = "SELECT rating, COUNT(*) as count 
                 FROM " . $this->table . " 
@@ -212,7 +237,7 @@ class Review {
 
         $stmt = $this->conn->prepare($query);
 
-        $stmt->bind_param("i", $product_id);
+        $stmt->bind_param("s", $product_id);
 
         $stmt->execute();
         return $stmt->get_result();
