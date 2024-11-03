@@ -2,15 +2,17 @@
 // File: model/DiscountUser.php
 
 class DiscountUser {
-    // Database connection and table name
     private $conn;
     private $table = 'discount_user';
 
     // Object properties matching database columns
     public $id;
+    public $name;
     public $user_id;
     public $code;
     public $description;
+    public $minimum_price;
+    public $type;
     public $discount_percent;
     public $valid_from;
     public $valid_to;
@@ -22,37 +24,90 @@ class DiscountUser {
 
     // Create discount user
     public function create() {
-        // Create query
         $query = "INSERT INTO " . $this->table . " 
-                SET user_id = ?,
+                SET name = ?,
+                    user_id = ?,
                     code = ?,
                     description = ?,
+                    minimum_price = ?,
+                    type = ?,
                     discount_percent = ?,
                     valid_from = ?,
                     valid_to = ?";
 
-        // Prepare statement
         $stmt = $this->conn->prepare($query);
 
         // Clean data
+        $this->name = htmlspecialchars(strip_tags($this->name));
         $this->user_id = htmlspecialchars(strip_tags($this->user_id));
         $this->code = htmlspecialchars(strip_tags($this->code));
         $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
+        $this->type = htmlspecialchars(strip_tags($this->type));
         $this->discount_percent = htmlspecialchars(strip_tags($this->discount_percent));
         $this->valid_from = htmlspecialchars(strip_tags($this->valid_from));
         $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
 
         // Bind data
-        $stmt->bind_param("isssss",
+        $stmt->bind_param("sssssssss",
+            $this->name,
             $this->user_id,
             $this->code,
             $this->description,
+            $this->minimum_price,
+            $this->type,
             $this->discount_percent,
             $this->valid_from,
             $this->valid_to
         );
 
-        // Execute query
+        if($stmt->execute()) {
+            return true;
+        }
+
+        printf("Error: %s.\n", $stmt->error);
+        return false;
+    }
+
+    // Update discount user
+    public function update() {
+        $query = "UPDATE " . $this->table . "
+                SET name = ?,
+                    code = ?,
+                    description = ?,
+                    minimum_price = ?,
+                    type = ?,
+                    discount_percent = ?,
+                    valid_from = ?,
+                    valid_to = ?
+                WHERE id = ? ";
+
+        $stmt = $this->conn->prepare($query);
+
+        // Clean data
+        $this->name = htmlspecialchars(strip_tags($this->name));
+        $this->code = htmlspecialchars(strip_tags($this->code));
+        $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
+        $this->type = htmlspecialchars(strip_tags($this->type));
+        $this->discount_percent = htmlspecialchars(strip_tags($this->discount_percent));
+        $this->valid_from = htmlspecialchars(strip_tags($this->valid_from));
+        $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        // Bind data
+        $stmt->bind_param("ssssssssi",
+            $this->name,
+            $this->code,
+            $this->description,
+            $this->minimum_price,
+            $this->type,
+            $this->discount_percent,
+            $this->valid_from,
+            $this->valid_to,
+            $this->id
+        );
+
         if($stmt->execute()) {
             return true;
         }
@@ -65,12 +120,14 @@ class DiscountUser {
     public function read($page = 1, $limit = 10, $user_id = null) {
         $offset = ($page - 1) * $limit;
 
-        // Base query
         $query = "SELECT 
                     du.id,
+                    du.name,
                     du.user_id,
                     du.code,
                     du.description,
+                    du.minimum_price,
+                    du.type,
                     du.discount_percent,
                     du.valid_from,
                     du.valid_to,
@@ -83,12 +140,10 @@ class DiscountUser {
                 FROM " . $this->table . " du
                 LEFT JOIN users u ON du.user_id = u.id ";
 
-        // Add user filter if provided
         if ($user_id) {
             $query .= "WHERE du.user_id = ? ";
         }
 
-        // Add ordering and pagination
         $query .= "ORDER BY 
                     CASE 
                         WHEN CURRENT_DATE() BETWEEN du.valid_from AND du.valid_to THEN 0
@@ -98,24 +153,22 @@ class DiscountUser {
                     du.valid_from DESC 
                     LIMIT ? OFFSET ?";
 
-        // Prepare statement
         $stmt = $this->conn->prepare($query);
 
-        // Bind parameters
         if ($user_id) {
             $stmt->bind_param("iii", $user_id, $limit, $offset);
         } else {
             $stmt->bind_param("ii", $limit, $offset);
         }
 
-        // Execute query
         $stmt->execute();
         return $stmt->get_result();
     }
 
+
+    
     // Get single discount user
     public function show($id) {
-        // Create query
         $query = "SELECT 
                     du.*,
                     u.username,
@@ -129,76 +182,25 @@ class DiscountUser {
                 WHERE du.id = ?
                 LIMIT 1";
 
-        // Prepare statement
         $stmt = $this->conn->prepare($query);
-
-        // Bind ID
         $stmt->bind_param("i", $id);
-
-        // Execute query
         $stmt->execute();
         return $stmt->get_result();
     }
 
-    // Update discount user
-    public function update() {
-        // Create query
-        $query = "UPDATE " . $this->table . "
-                SET code = ?,
-                    description = ?,
-                    discount_percent = ?,
-                    valid_from = ?,
-                    valid_to = ?
-                WHERE id = ? AND user_id = ?";
-
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
-
-        // Clean data
-        $this->code = htmlspecialchars(strip_tags($this->code));
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->discount_percent = htmlspecialchars(strip_tags($this->discount_percent));
-        $this->valid_from = htmlspecialchars(strip_tags($this->valid_from));
-        $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->user_id = htmlspecialchars(strip_tags($this->user_id));
-
-        // Bind data
-        $stmt->bind_param("sssssii",
-            $this->code,
-            $this->description,
-            $this->discount_percent,
-            $this->valid_from,
-            $this->valid_to,
-            $this->id,
-            $this->user_id
-        );
-
-        // Execute query
-        if($stmt->execute()) {
-            return true;
-        }
-
-        printf("Error: %s.\n", $stmt->error);
-        return false;
-    }
+    
 
     // Delete discount user
     public function delete() {
         // Create query
-        $query = "DELETE FROM " . $this->table . " WHERE id = ? AND user_id = ?";
+        $query = "DELETE FROM " . $this->table . " WHERE id = ?";
 
-        // Prepare statement
         $stmt = $this->conn->prepare($query);
 
-        // Clean data
         $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->user_id = htmlspecialchars(strip_tags($this->user_id));
 
-        // Bind data
-        $stmt->bind_param("ii", $this->id, $this->user_id);
+        $stmt->bind_param("i", $this->id);
 
-        // Execute query
         if($stmt->execute()) {
             return true;
         }

@@ -300,8 +300,42 @@ elseif (preg_match("/\/review\/(\w+)$/", $request_uri, $matches)) {
     }
 }
 
+// discount route 
+// list_discount
+// URL: http://localhost/WebDoAn/main.php/discount
 
+elseif (preg_match("/\/discount\$/", $request_uri)) {
+    include './model/discount/list_discount.php';
+}
 
+// discount_user
+//{
+//     "name": "Summer",
+//     "code": "SUM20",
+//     "description": "20% off",
+//     "minimum_price": 10,
+//     "type": "percent",
+//     "discount_percent": 0.2,
+//     "valid_from": "2024-06-22",
+//     "valid_to": "2024-06-22"
+// }
+elseif (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
+    $product_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        include './model/discount/fix_discount_user.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/discount/list_discount_user.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        include './model/discount/delete_discount_user.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use PUT, or DELETE request.'
+        ]);
+        http_response_code(405);
+    }
+}
 
 else {
         echo json_encode([
@@ -312,4 +346,4 @@ else {
     http_response_code(response_code: 404);
 }
 
-?>
+

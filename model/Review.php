@@ -155,42 +155,43 @@ class Review {
         return $stmt->get_result();
     }
 
-    // Update review
-    public function update() {
-        $query = "UPDATE " . $this->table . "
-                SET rating = ?,
-                    comment = ?,
-                    image_1 = ?,
-                    image_2 = ?,
-                    image_3 = ?
-                WHERE id = ?";
+    // Update method in Review class
+public function update() {
+    $query = "UPDATE " . $this->table . "
+            SET rating = ?,
+                comment = ?,
+                image_1 = ?,
+                image_2 = ?,
+                image_3 = ?
+            WHERE id = ?";
 
-        $stmt = $this->conn->prepare($query);
+    $stmt = $this->conn->prepare($query);
 
-        $this->rating = htmlspecialchars(strip_tags($this->rating));
-        $this->comment = htmlspecialchars(strip_tags($this->comment));
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->image_1 = htmlspecialchars(strip_tags($this->image_1));
-        $this->image_2 = htmlspecialchars(strip_tags($this->image_2));
-        $this->image_3 = htmlspecialchars(strip_tags($this->image_3));
+    $this->rating = htmlspecialchars(strip_tags($this->rating));
+    $this->comment = htmlspecialchars(strip_tags($this->comment));
+    $this->id = htmlspecialchars(strip_tags($this->id));
+    
+    // Xử lý các trường image
+    $this->image_1 = !empty($this->image_1) ? htmlspecialchars(strip_tags($this->image_1)) : null;
+    $this->image_2 = !empty($this->image_2) ? htmlspecialchars(strip_tags($this->image_2)) : null;
+    $this->image_3 = !empty($this->image_3) ? htmlspecialchars(strip_tags($this->image_3)) : null;
 
-        $stmt->bind_param("ississ",
-            $this->rating,
-            $this->comment,
-            $this->image_1,
-            $this->image_2,
-            $this->image_3,
-            $this->id,
-        );
+    $stmt->bind_param("ississ",
+        $this->rating,
+        $this->comment,
+        $this->image_1,
+        $this->image_2,
+        $this->image_3,
+        $this->id
+    );
 
-        if($stmt->execute()) {
-            return true;
-        }
-
-        printf("Error: %s.\n", $stmt->error);
-        return false;
+    if($stmt->execute()) {
+        return true;
     }
 
+    printf("Error: %s.\n", $stmt->error);
+    return false;
+}
     // Delete review
     public function delete() {
         $query = "DELETE FROM " . $this->table . " WHERE id = ? AND user_id = ?";

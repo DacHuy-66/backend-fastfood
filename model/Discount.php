@@ -10,10 +10,14 @@ class Discount {
     // Discount properties
     public $id;
     public $code;
+    public $name;
     public $description;
     public $discount_percent;
     public $valid_from;
     public $valid_to;
+    public $quantity;
+    public $minimum_price;
+    public $type;
 
     // Constructor
     public function __construct($db) {
@@ -24,27 +28,39 @@ class Discount {
     public function create() {
         $query = "INSERT INTO " . $this->table . " 
                 SET code = ?,
+                    name = ?,
                     description = ?,
                     discount_percent = ?,
                     valid_from = ?,
-                    valid_to = ?";
+                    valid_to = ?,
+                    quantity = ?,
+                    minimum_price = ?,
+                    type = ?";
 
         $stmt = $this->conn->prepare($query);
 
         // Clean data
         $this->code = htmlspecialchars(strip_tags($this->code));
+        $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description));
         $this->discount_percent = htmlspecialchars(strip_tags($this->discount_percent));
         $this->valid_from = htmlspecialchars(strip_tags($this->valid_from));
         $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
+        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
+        $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
+        $this->type = htmlspecialchars(strip_tags($this->type));
 
         // Bind data
-        $stmt->bind_param("ssiss", 
+        $stmt->bind_param("sssissids", 
             $this->code,
+            $this->name,
             $this->description,
             $this->discount_percent,
             $this->valid_from,
-            $this->valid_to
+            $this->valid_to,
+            $this->quantity,
+            $this->minimum_price,
+            $this->type
         );
 
         if($stmt->execute()) {
@@ -62,10 +78,14 @@ class Discount {
         $query = "SELECT 
                     id,
                     code,
+                    name,
                     description,
                     discount_percent,
                     valid_from,
-                    valid_to
+                    valid_to,
+                    quantity,
+                    minimum_price,
+                    type
                 FROM " . $this->table . "
                 ORDER BY valid_from DESC 
                 LIMIT ? OFFSET ?";
@@ -99,29 +119,41 @@ class Discount {
     public function update() {
         $query = "UPDATE " . $this->table . "
                 SET code = ?,
+                    name = ?,
                     description = ?,
                     discount_percent = ?,
                     valid_from = ?,
-                    valid_to = ?
+                    valid_to = ?,
+                    quantity = ?,
+                    minimum_price = ?,
+                    type = ?
                 WHERE id = ?";
 
         $stmt = $this->conn->prepare($query);
 
         // Clean data
         $this->code = htmlspecialchars(strip_tags($this->code));
+        $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description));
         $this->discount_percent = htmlspecialchars(strip_tags($this->discount_percent));
         $this->valid_from = htmlspecialchars(strip_tags($this->valid_from));
         $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
+        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
+        $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
+        $this->type = htmlspecialchars(strip_tags($this->type));
         $this->id = htmlspecialchars(strip_tags($this->id));
 
         // Bind data
-        $stmt->bind_param("ssissi",
+        $stmt->bind_param("sssissidsi",
             $this->code,
+            $this->name,
             $this->description,
             $this->discount_percent,
             $this->valid_from,
             $this->valid_to,
+            $this->quantity,
+            $this->minimum_price,
+            $this->type,
             $this->id
         );
 
@@ -132,7 +164,6 @@ class Discount {
         printf("Error: %s.\n", $stmt->error);
         return false;
     }
-
     // Delete discount
     public function delete() {
         // First check if discount is used in any orders

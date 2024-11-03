@@ -32,6 +32,7 @@ try {
     
     if ($result->num_rows > 0) {
         $response = [
+            'ok' => true,
             'status' => 'success',
             'message' => 'Review retrieved successfully',
             'code' => 200,
@@ -44,6 +45,7 @@ try {
 
 } catch (Exception $e) {
     $response = [
+        'ok' => true,
         'code' => $e->getCode() ?: 400,
         'status_code' => 'FAILED',
         'message' => $e->getMessage()

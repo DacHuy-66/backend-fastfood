@@ -34,7 +34,7 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     // API key is valid, fetch user details
     $user = $result->fetch_assoc();
-
+    
     // Assign default avatar if avata field is empty
     $avatar = $user['avata'] ?: $default_avatar;
 
@@ -72,6 +72,28 @@ if ($result->num_rows > 0) {
         ];
     }
 
+    // Fetch user's discount information
+    $discount_sql = "SELECT * FROM discount_user 
+                    WHERE user_id = ? 
+                    AND valid_from <= CURRENT_DATE 
+                    AND valid_to >= CURRENT_DATE";
+    $discount_stmt = $conn->prepare($discount_sql);
+    $discount_stmt->bind_param("s", $user['id']);
+    $discount_stmt->execute();
+    $discount_result = $discount_stmt->get_result();
+
+    $discounts = [];
+    while ($discount = $discount_result->fetch_assoc()) {
+        $discounts[] = [
+            'id' => $discount['id'],
+            'code' => $discount['code'],
+            'description' => $discount['description'],
+            'discount_percent' => $discount['discount_percent'],
+            'valid_from' => $discount['valid_from'],
+            'valid_to' => $discount['valid_to']
+        ];
+    }
+
     // Prepare the response data structure
     $response = [
         'ok' => true,
@@ -83,7 +105,8 @@ if ($result->num_rows > 0) {
             'created_at' => $user['created_at'],
             'avata' => $avatar,
             'addresses' => $addresses,
-            'reviews' => $reviews
+            'reviews' => $reviews,
+            'discounts' => $discounts
         ]
     ];
 

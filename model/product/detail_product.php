@@ -71,6 +71,7 @@ try {
         }
         
         $response = [
+            'ok' => true,
             'status' => 'success',
             'message' => 'Product retrieved successfully',
             'code' => 200,
@@ -93,6 +94,7 @@ try {
     }
 } catch (Exception $e) {
     $response = [
+        'ok' => false,
         'code' => $e->getCode() ? $e->getCode() : 400,
         'status_code' => 'FAILED',
         'message' => $e->getMessage()
