@@ -17,18 +17,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // ui_client route
 
 // home_page
+//url: http://localhost/WebDoAn/model/ui_client/main_ui.php/homepage
 if (preg_match("/\/homepage\$/", $request_uri)) {
     include 'home_page.php';
 } 
 
+// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/homepage/header
 elseif (preg_match("/\/homepage\/header\$/", $request_uri)) {
     include 'head_page.php';
 } 
+
+//url: http://localhost/WebDoAn/model/ui_client/main_ui.php/homepage/navbad
 elseif (preg_match("/\/homepage\/navbad\$/", $request_uri)) {
     include 'nav_page.php';
 } 
+
+//url: http://localhost/WebDoAn/model/ui_client/main_ui.php/homepage/body
 elseif (preg_match("/\/homepage\/body\$/", $request_uri)) {
     include 'body_page.php';
+} 
+
+
+//url: http://localhost/WebDoAn/model/ui_client/main_ui.php/abouts/header
+elseif (preg_match("/\/abouts\/header\$/", $request_uri)) {
+    include 'head_review.php';
+} 
+
+//url : http://localhost/WebDoAn/model/ui_client/main_ui.php/abouts/body
+elseif (preg_match("/\/abouts\/body\$/", $request_uri)) {
+    include 'body_review.php';
 } 
 else {
     echo json_encode([
