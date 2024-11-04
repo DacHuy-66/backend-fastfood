@@ -51,8 +51,17 @@ elseif (preg_match("/\/admin\/delete\/(\d+)\$/", $request_uri, $matches)) {
 // list admin
 // url http://localhost/WebDoAn/main_admin.php/admin
 
-elseif (strpos($request_uri, '/admin')!== false) {
-    include './model/admin/list_admin.php';
+elseif (preg_match("/\/admin$/", $request_uri) || preg_match("/\/admin\?/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/admin/list_admin.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
 }
 
 else {

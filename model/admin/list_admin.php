@@ -56,7 +56,7 @@ try {
     $response = [
         'ok' => true,
         'status' => 'success',
-        'message' => 'Admins retrieved successfully',
+        'message' => 'Admins đã truy xuất thành công',
         'code' => 200,
         'data' => [
             'admins' => $admins_arr,

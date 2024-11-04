@@ -23,7 +23,7 @@ if (!$api_key) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'API key not provided.'
+        'message' => 'API key không được cấp.'
     ]);
     http_response_code(400);
     exit;
