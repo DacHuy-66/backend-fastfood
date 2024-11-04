@@ -78,11 +78,11 @@ class Product
         }
 
         // Lọc theo trạng thái
-        if (isset($filters['status'])) {
-            $query .= " AND p.status = ?";
-            $params[] = $filters['status'];
-            $types .= "i";
-        }
+        // if (isset($filters['status'])) {
+        //     $query .= " AND p.status = ?";
+        //     $params[] = $filters['status'];
+        //     $types .= "i";
+        // }
 
         // Sắp xếp
         $allowedSortFields = ['name', 'price', 'created_at', 'sold'];
@@ -295,12 +295,72 @@ class Product
         return false;
     }
 
-    // // Lấy tổng số sản phẩm
-    // public function getTotalCount()
-    // {
-    //     $query = "SELECT COUNT(*) as total FROM " . $this->table;
-    //     $result = $this->conn->query($query);
-    //     $row = $result->fetch_assoc();
-    //     return $row['total'];
-    // }
+    public function getTopSellingProducts($limit = 10, $filters = []) {
+        // Xây dựng câu truy vấn cơ bản
+        $query = "SELECT 
+                    p.id,
+                    p.name,
+                    p.description,
+                    p.price,
+                    p.image_url,
+                    p.sold,
+                    p.type,
+                    p.quantity,
+                    p.status,
+                    p.discount,
+                    p.created_at
+                FROM
+                    {$this->table} p
+                WHERE 1=1";
+    
+        $params = [];
+        $types = "";
+    
+        // Lọc theo loại sản phẩm
+        if (!empty($filters['type'])) {
+            $query .= " AND p.type = ?";
+            $params[] = $filters['type'];
+            $types .= "s";
+        }
+    
+        // Lọc theo khoảng giá
+        if (isset($filters['min_price'])) {
+            $query .= " AND p.price >= ?";
+            $params[] = $filters['min_price'];
+            $types .= "d";
+        }
+        if (isset($filters['max_price'])) {
+            $query .= " AND p.price <= ?";
+            $params[] = $filters['max_price'];
+            $types .= "d";
+        }
+    
+        // Lọc theo trạng thái
+        if (isset($filters['status'])) {
+            $query .= " AND p.status = ?";
+            $params[] = $filters['status'];
+            $types .= "i";
+        }
+    
+        // Chỉ lấy những sản phẩm có số lượng đã bán > 0
+        $query .= " AND p.sold > 0";
+    
+        // Sắp xếp theo số lượng đã bán giảm dần
+        $query .= " ORDER BY p.sold DESC";
+    
+        // Thêm LIMIT
+        $query .= " LIMIT ?";
+        $params[] = $limit;
+        $types .= "i";
+    
+        // Chuẩn bị và thực thi câu truy vấn
+        $stmt = $this->conn->prepare($query);
+        
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+        
+        $stmt->execute();
+        return $stmt->get_result();
+    }
 }

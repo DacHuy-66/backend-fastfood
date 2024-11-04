@@ -39,13 +39,8 @@ elseif (preg_match("/\/homepage\/body\$/", $request_uri)) {
 
 
 //url: http://localhost/WebDoAn/model/ui_client/main_ui.php/abouts/header
-elseif (preg_match("/\/abouts\/header\$/", $request_uri)) {
+elseif (preg_match("/\/abouts\$/", $request_uri)) {
     include 'head_review.php';
-} 
-
-//url : http://localhost/WebDoAn/model/ui_client/main_ui.php/abouts/body
-elseif (preg_match("/\/abouts\/body\$/", $request_uri)) {
-    include 'body_review.php';
 } 
 else {
     echo json_encode([

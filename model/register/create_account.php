@@ -30,7 +30,7 @@ if (!empty($missing_fields)) {
 // Sanitize and validate input data
 $username = trim($data['username']);
 $email = trim($data['email']);
-$password = trim($data['password']); 
+$password = trim($data['password']);
 
 
 // Validate email format
@@ -38,7 +38,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Invalid email format.'
+        'message' => 'Vui lòng điền đúng email!'
     ]);
     http_response_code(400);
     exit;
@@ -49,7 +49,7 @@ if (strlen($username) < 3 || strlen($username) > 50) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Username must be between 3 and 50 characters.'
+        'message' => 'Tên đăng nhập nên lớn hơn 3 kí tự và nhỏ hơn 50 kí tự!'
     ]);
     http_response_code(400);
     exit;
@@ -60,7 +60,7 @@ if (strlen($password) < 1) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Password cannot be empty.'
+        'message' => 'Vui lòng điền mật khẩu!'
     ]);
     http_response_code(400);
     exit;
@@ -76,7 +76,7 @@ if ($result->num_rows > 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Email already exists.'
+        'message' => 'Email đã tồn tại!'
     ]);
     http_response_code(409);
     $stmt->close();
@@ -88,7 +88,7 @@ $stmt->close();
 
 // Generate unique ID and API key
 $user_id = uniqid();
-$api_key = bin2hex(random_bytes(32)); // 64 characters long
+$api_key = bin2hex(random_bytes(32)); 
 $default_avata = 'https://tse4.mm.bing.net/th?id=OIP.Zmki3GIiRk-XKTzRRlxn4QHaER&pid=Api&P=0&h=220'; // Set default avatar path
 // Default role is user (0)
 $role = '0';
@@ -102,7 +102,7 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => true,
         'success' => true,
-        'message' => 'Account created successfully.',
+        'message' => 'Tài khoản được tạo thành công!',
 
     ]);
     http_response_code(201);
@@ -110,11 +110,10 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Failed to create account: ' . $stmt->error
+        'message' => 'Tạo tài khoản thất bại: ' . $stmt->error
     ]);
     http_response_code(500);
 }
 
 $stmt->close();
 $conn->close();
-?>

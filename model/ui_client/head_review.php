@@ -14,11 +14,19 @@ function getHeaderReview($conn) {
     }
     return $socialMedia;
 }
+function getBodyReview($conn) {
+    $result = $conn->query("SELECT * FROM body_review");
+    $socialMedia = [];
+    while($row = $result->fetch_assoc()) {
+        $socialMedia[] = $row;
+    }
+    return $socialMedia;
+}
 
-// Combine all header data
 try {
     $response = [
-        'websiteInfo' => getHeaderReview($conn),
+        'Info' => getHeaderReview($conn),
+        'session' => getBodyReview($conn),
         'ok' => true,
 
     ];

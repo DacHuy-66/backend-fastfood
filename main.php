@@ -1,5 +1,5 @@
 <?php
-$request_uri = $_SERVER['REQUEST_URI'];
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
+$request_uri = $_SERVER['REQUEST_URI'];
+
 // user routes
 // {
 //     "email": "....",
@@ -22,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // url ./WebDoAn/main.php/apikey
 if (strpos($request_uri, '/apikey') !== false) {
     include './model/login/LoginApiKey.php';
-} 
+}
 // Sửa user 
 // X-Api-Key:....
 // {
@@ -33,7 +35,6 @@ if (strpos($request_uri, '/apikey') !== false) {
 elseif (preg_match("/\/profile\/(\w+)$/", $request_uri, $matches)) {
     $id_user = $matches[1]; // Lấy giá trị ID từ kết quả khớp
     include './model/profile/fix_profile.php';
-    
 }
 
 // delete user
@@ -42,13 +43,13 @@ elseif (preg_match("/\/profile\/(\w+)$/", $request_uri, $matches)) {
 
 elseif (preg_match("/\/delete\$/", $request_uri)) {
     include './model/profile/delete_user.php';
-} 
+}
 // xem thông tin profile 
 // X-Api-Key:....
 // url http://localhost/WebDoAn/main.php/profile/...
 elseif (preg_match("/\/profile\$/", $request_uri)) {
     include './model/profile/profile_user.php';
-} 
+}
 
 //đường dẫn đổi mật khẩu
 // {
@@ -58,8 +59,7 @@ elseif (preg_match("/\/profile\$/", $request_uri)) {
 // url: http://localhost/WebDoAn/main.php/change/password/...
 elseif (preg_match("/\/change\/password\$/", $request_uri)) {
     include './model/profile/changePass_user.php';
-    
-} 
+}
 
 // create account
 // {
@@ -89,10 +89,10 @@ elseif (strpos($request_uri, '/register') !== false) {
 // url http://localhost/WebDoAn/main.php/address
 elseif (preg_match("/\/address\$/", $request_uri)) {
     include './model/profile/address_user.php';
-} 
+}
 // detail address
 // url http://localhost/WebDoAn/main.php/address/...
- elseif (preg_match("/\/address\/(\w+)$/", $request_uri, $matches)) {
+elseif (preg_match("/\/address\/(\w+)$/", $request_uri, $matches)) {
     $user_id = $matches[1]; // Extract the user ID from the URI
     $_GET['id'] = $user_id; // Set the 'id' parameter for detail_address.php
     include './model/profile/detail_address.php';
@@ -172,18 +172,18 @@ elseif (preg_match("/\/product$/", $request_uri) || preg_match("/\/product\?/", 
         $page = isset($_GET['page']) ? filter_var($_GET['page'], FILTER_VALIDATE_INT, [
             'options' => ['default' => 1, 'min_range' => 1]
         ]) : 1;
-        
+
         $limit = isset($_GET['limit']) ? filter_var($_GET['limit'], FILTER_VALIDATE_INT, [
             'options' => ['default' => 10, 'min_range' => 1, 'max_range' => 100]
         ]) : 10;
-        
+
         // Ensure these variables are available in list_product.php
         $_GET['page'] = $page;
         $_GET['limit'] = $limit;
-        
+
         include './model/product/list_product.php';
-        }
     }
+}
 
 // Update product: PUT /products/{id}
 // {
@@ -222,17 +222,31 @@ elseif (preg_match("/\/detail\/([^\/\?]+)(?:\?.*)?$/", $request_uri, $matches)) 
         $page = isset($_GET['page']) ? filter_var($_GET['page'], FILTER_VALIDATE_INT, [
             'options' => ['default' => 1, 'min_range' => 1]
         ]) : 1;
-        
+
         $limit = isset($_GET['limit']) ? filter_var($_GET['limit'], FILTER_VALIDATE_INT, [
             'options' => ['default' => 3, 'min_range' => 1, 'max_range' => 100]
         ]) : 3;
-        
+
         // Pass product_id and pagination parameters to detail_product.php
         $_GET['product_id'] = $matches[1];
         $_GET['page'] = $page;
         $_GET['limit'] = $limit;
-        
+
         include './model/product/detail_product.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// url: http://localhost/WebDoAn/main.php/products/top?limit=10
+elseif (preg_match("/\/products\/top$/", $request_uri) || preg_match("/\/products\/top\?/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/product/top_product.php';
     } else {
         echo json_encode([
             'ok' => false,
@@ -266,18 +280,18 @@ elseif (preg_match("/\/review$/", $request_uri) || preg_match("/\/review\?/", $r
         $page = isset($_GET['page']) ? filter_var($_GET['page'], FILTER_VALIDATE_INT, [
             'options' => ['default' => 1, 'min_range' => 1]
         ]) : 1;
-        
+
         $limit = isset($_GET['limit']) ? filter_var($_GET['limit'], FILTER_VALIDATE_INT, [
             'options' => ['default' => 10, 'min_range' => 1, 'max_range' => 100]
         ]) : 10;
-        
+
         // Ensure these variables are available in list_product.php
         $_GET['page'] = $page;
         $_GET['limit'] = $limit;
-        
+
         include './model/review/list_review.php';
-        }
     }
+}
 // delete review
 // detail address
 // URL: http://localhost/WebDoAn/main.php/review/{id}
@@ -335,15 +349,11 @@ elseif (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
         ]);
         http_response_code(405);
     }
-}
-
-else {
-        echo json_encode([
+} else {
+    echo json_encode([
         'ok' => false,
         'success' => false,
         'message' => 'URL not found'
-        ]);
+    ]);
     http_response_code(response_code: 404);
 }
-
-
