@@ -23,10 +23,14 @@ $username = $data['username'];
 $email = $data['email'];
 $password = $data['password'];
 // Các role mặc định là 0 nếu không được cung cấp
-$role_1 = isset($data['role_1']) ? (int)$data['role_1'] : 0;
-$role_2 = isset($data['role_2']) ? (int)$data['role_2'] : 0;
-$role_3 = isset($data['role_3']) ? (int)$data['role_3'] : 0;
-$role_4 = isset($data['role_4']) ? (int)$data['role_4'] : 0;
+$order = isset($data['order']) ? (int)$data['order'] : 0;
+$mess = isset($data['mess']) ? (int)$data['mess'] : 0;
+$statistics = isset($data['statistics']) ? (int)$data['statistics'] : 0;
+$user = isset($data['user']) ? (int)$data['user'] : 0;
+$product = isset($data['product']) ? (int)$data['product'] : 0;
+$discount = isset($data['discount']) ? (int)$data['discount'] : 0;
+$layout = isset($data['layout']) ? (int)$data['layout'] : 0;
+$decentralization = isset($data['decentralization']) ? (int)$data['decentralization'] : 0;
 $note = isset($data['note']) ? $data['note'] : '';
 
 // Kiểm tra email đã tồn tại chưa
@@ -41,7 +45,7 @@ if ($row['count'] > 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Email already exists'
+        'message' => 'Email đã tồn tại!'
     ]);
     exit;
 }
@@ -49,18 +53,26 @@ if ($row['count'] > 0) {
 // Tạo API key
 $api_key = bin2hex(random_bytes(32));
 
+// Tạo ID ngẫu nhiên
+$id = bin2hex(random_bytes(6)); 
+
 // Thêm admin mới
-$sql = "INSERT INTO admin (username, email, password, role_1, role_2, role_3, role_4, note, api_key, time) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+$sql = "INSERT INTO admin (id, username, email, password, `order`, mess, `statistics`, `user`, product, discount, layout, decentralization, note, api_key, time) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("sssiiiiss", 
+$stmt->bind_param("ssssiiiiiiiiss", 
+    $id,     
     $username, 
     $email, 
     $password, 
-    $role_1, 
-    $role_2, 
-    $role_3, 
-    $role_4, 
+    $order, 
+    $mess, 
+    $statistics,
+    $user, 
+    $product, 
+    $discount, 
+    $layout, 
+    $decentralization, 
     $note, 
     $api_key
 );
@@ -69,16 +81,20 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => true,
         'success' => true,
-        'message' => 'Admin created successfully',
+        'message' => 'Tạo tài khoản thành công!',
         'data' => [
-            'id' => $conn->insert_id,
+            'id' => $id,    
             'username' => $username,
             'email' => $email,
             'roles' => [
-                'role_1' => (bool)$role_1,
-                'role_2' => (bool)$role_2,
-                'role_3' => (bool)$role_3,
-                'role_4' => (bool)$role_4
+                'order' => (bool)$order,
+                'mess' => (bool)$mess,
+                'statistics' => (bool)$statistics,
+                'user' => (bool)$user,
+                'product' => (bool)$product,
+                'discount' => (bool)$discount,
+                'layout' => (bool)$layout,
+                'decentralization' => (bool)$decentralization
             ],
             'note' => $note,
             'api_key' => $api_key
@@ -88,7 +104,7 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Failed to create admin: ' . $conn->error
+        'message' => 'Tạo tài khoản thất bại: ' . $conn->error
     ]);
 }
 

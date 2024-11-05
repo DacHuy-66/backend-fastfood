@@ -20,7 +20,7 @@ $segments = explode('/', trim($request_uri, '/'));
 $id_admin = end($segments);
 
 // Check if admin ID is provided
-if (!is_numeric($id_admin)) {
+if (empty($id_admin)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
@@ -32,14 +32,14 @@ if (!is_numeric($id_admin)) {
 
 // Validate admin ID
 $stmt = $conn->prepare("SELECT id FROM admin WHERE id = ?");
-$stmt->bind_param("i", $id_admin);
+$stmt->bind_param("s", $id_admin);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     // Admin exists, proceed with deleting the admin
     $delete_stmt = $conn->prepare("DELETE FROM admin WHERE id = ?");
-    $delete_stmt->bind_param("i", $id_admin);
+    $delete_stmt->bind_param("s", $id_admin);
 
     if ($delete_stmt->execute()) {
         echo json_encode([

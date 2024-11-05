@@ -20,11 +20,16 @@ try {
     $sort_order = isset($_GET['sort_order']) && strtoupper($_GET['sort_order']) === 'ASC' ? 'ASC' : 'DESC';
 
     // Prepare the SQL query
-    $sql = "SELECT id, username, email, role_1, role_2, role_3, role_4, note, time FROM admin WHERE username LIKE ? ORDER BY $sort_by $sort_order LIMIT ? OFFSET ?";
+    $sql = "SELECT id, username, email, password, `order`, mess, statistics, user, product, discount, layout, decentralization, note, time 
+           FROM admin 
+           WHERE (username LIKE ? OR email LIKE ?) 
+           AND id != 'highest'
+           ORDER BY $sort_by $sort_order 
+           LIMIT ? OFFSET ?";
     $stmt = $conn->prepare($sql);
     
     $search_param = "%" . $search . "%";
-    $stmt->bind_param("sii", $search_param, $limit, $offset);
+    $stmt->bind_param("ssii", $search_param, $search_param, $limit, $offset);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -32,17 +37,25 @@ try {
     $admins_arr = [];
     while ($row = $result->fetch_assoc()) {
         // Format data appropriately
-        $row['role_1'] = (bool)$row['role_1'];
-        $row['role_2'] = (bool)$row['role_2'];
-        $row['role_3'] = (bool)$row['role_3'];
-        $row['role_4'] = (bool)$row['role_4'];
+        $row['password'] = (string)$row['password'];
+        $row['order'] = (bool)$row['order'];
+        $row['mess'] = (bool)$row['mess'];
+        $row['statistics'] = (bool)$row['statistics'];
+        $row['user'] = (bool)$row['user'];
+        $row['product'] = (bool)$row['product'];
+        $row['discount'] = (bool)$row['discount'];
+        $row['layout'] = (bool)$row['layout'];
+        $row['decentralization'] = (bool)$row['decentralization'];
         $admins_arr[] = $row;
     }
 
     // Get total number of admins for pagination
-    $count_sql = "SELECT COUNT(id) AS total FROM admin WHERE username LIKE ?";
+    $count_sql = "SELECT COUNT(id) AS total 
+                  FROM admin 
+                  WHERE (username LIKE ? OR email LIKE ?) 
+                  AND id != 'highest'";
     $count_stmt = $conn->prepare($count_sql);
-    $count_stmt->bind_param("s", $search_param);
+    $count_stmt->bind_param("ss", $search_param, $search_param);
     $count_stmt->execute();
     $total_result = $count_stmt->get_result()->fetch_assoc();
     $total_admins = $total_result['total'];

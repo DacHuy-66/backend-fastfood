@@ -349,6 +349,40 @@ elseif (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
         ]);
         http_response_code(405);
     }
+}
+
+// promotion route
+
+// list_promotion
+// URL: http://localhost/WebDoAn/main.php/promotion
+elseif (preg_match("/\/promotion\$/", $request_uri)) {
+    include './model/promotion/list_promotion.php';
+
+// fix_promotion
+// {
+//     "title": "...",
+//     "description": "...",
+//     "discount_percent": 0.2,
+//     "start_date": "...",
+//     "end_date": "...",
+//     "min_order_value": 10,
+//     "max_discount": 100
+// }
+// URL: http://localhost/WebDoAn/main.php/promotion/123
+} elseif (preg_match("/\/promotion\/(\w+)$/", $request_uri, $matches)) {
+    $promotion_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        include './model/promotion/fix_promotion.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        include './model/promotion/delete_promotion.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use PUT, or DELETE request.'
+        ]);
+        http_response_code(405);
+    }
 } else {
     echo json_encode([
         'ok' => false,

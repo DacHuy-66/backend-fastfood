@@ -16,22 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 // Retrieve API key from headers
 $headers = apache_request_headers();
-$api_key = isset($headers['X-Api-Key']) ? $headers['X-Api-Key'] : null;
 
-// Check if API key is provided
-if (!$api_key) {
+$url_path = $_SERVER['REQUEST_URI'];
+$path_parts = explode('/', trim($request_uri, '/'));
+$admin_id = end($path_parts);
+// Check if admin ID is provided
+if (empty($id_admin)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'API key không được cấp.'
+        'message' => 'ID admin không được cung cấp!'
     ]);
     http_response_code(400);
     exit;
 }
 
-// Validate API key
-$stmt = $conn->prepare("SELECT id FROM admin WHERE api_key = ?");
-$stmt->bind_param("s", $api_key);
+// Validate admin ID
+$stmt = $conn->prepare("SELECT id FROM admin WHERE id = ?");
+$stmt->bind_param("s", $admin_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -67,28 +69,28 @@ if ($result->num_rows > 0) {
         $values[] = $data['password'];
     }
     
-    if (isset($data['role_1'])) {
-        $updates[] = "role_1 = ?";
+    if (isset($data['order'])) {
+        $updates[] = "`order` = ?";
         $types .= "i";
-        $values[] = (int)$data['role_1'];
+        $values[] = (int)$data['order'];
     }
     
-    if (isset($data['role_2'])) {
-        $updates[] = "role_2 = ?";
+    if (isset($data['mess'])) {
+        $updates[] = "mess = ?";
         $types .= "i";
-        $values[] = (int)$data['role_2'];
+        $values[] = (int)$data['mess'];
     }
     
-    if (isset($data['role_3'])) {
-        $updates[] = "role_3 = ?";
+    if (isset($data['statistics'])) {
+        $updates[] = "statistics = ?";
         $types .= "i";
-        $values[] = (int)$data['role_3'];
+        $values[] = (int)$data['statistics'];
     }
     
-    if (isset($data['role_4'])) {
-        $updates[] = "role_4 = ?";
+    if (isset($data['user'])) {
+        $updates[] = "user = ?";
         $types .= "i";
-        $values[] = (int)$data['role_4'];
+        $values[] = (int)$data['user'];
     }
     
     if (isset($data['note'])) {
@@ -96,7 +98,26 @@ if ($result->num_rows > 0) {
         $types .= "s";
         $values[] = $data['note'];
     }
-
+    if (isset($data['product'])) {
+        $updates[] = "product = ?";
+        $types .= "i";
+        $values[] = (int)$data['product'];
+    }
+    if (isset($data['discount'])) {
+        $updates[] = "discount = ?";
+        $types .= "i";
+        $values[] = (int)$data['discount'];
+    }
+    if (isset($data['layout'])) {
+        $updates[] = "layout = ?";
+        $types .= "i";
+        $values[] = (int)$data['layout'];
+    }
+    if (isset($data['decentralization'])) {
+        $updates[] = "decentralization = ?";
+        $types .= "i";
+        $values[] = (int)$data['decentralization'];
+    }
     if (empty($updates)) {
         echo json_encode([
             'ok' => false,
@@ -115,7 +136,7 @@ if ($result->num_rows > 0) {
     
     // Add admin ID to values and types
     $values[] = $admin_id;
-    $types .= "i";
+    $types .= "s";
     
     // Prepare and execute the update
     $update_stmt = $conn->prepare($sql);
@@ -125,8 +146,8 @@ if ($result->num_rows > 0) {
 
     if ($update_stmt->execute()) {
         // Fetch updated admin data
-        $select_stmt = $conn->prepare("SELECT id, username, email, role_1, role_2, role_3, role_4, note, time FROM admin WHERE id = ?");
-        $select_stmt->bind_param("i", $admin_id);
+        $select_stmt = $conn->prepare("SELECT id, username, email, 'order', mess, 'statistics', user, product, discount, layout, decentralization, note, time FROM admin WHERE id = ?");
+        $select_stmt->bind_param("s", $admin_id);
         $select_stmt->execute();
         $updated_admin = $select_stmt->get_result()->fetch_assoc();
         
@@ -139,10 +160,14 @@ if ($result->num_rows > 0) {
                 'username' => $updated_admin['username'],
                 'email' => $updated_admin['email'],
                 'roles' => [
-                    'role_1' => (bool)$updated_admin['role_1'],
-                    'role_2' => (bool)$updated_admin['role_2'],
-                    'role_3' => (bool)$updated_admin['role_3'],
-                    'role_4' => (bool)$updated_admin['role_4']
+                    'order' => (bool)$updated_admin['order'],
+                    'mess' => (bool)$updated_admin['mess'],
+                    'statistics' => (bool)$updated_admin['statistics'],
+                    'user' => (bool)$updated_admin['user'],
+                    'product' => (bool)$updated_admin['product'],
+                    'discount' => (bool)$updated_admin['discount'],
+                    'layout' => (bool)$updated_admin['layout'],
+                    'decentralization' => (bool)$updated_admin['decentralization']
                 ],
                 'note' => $updated_admin['note'],
                 'time' => $updated_admin['time']
@@ -162,7 +187,7 @@ if ($result->num_rows > 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'API key không hợp lệ!'
+        'message' => 'ID không hợp lệ!'
     ]);
     http_response_code(401);
 }

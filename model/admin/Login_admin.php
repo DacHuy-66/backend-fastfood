@@ -34,12 +34,6 @@ if ($result->num_rows > 0) {
             'ok' => true,
             'success' => true,
             'api_key' => $api_key,
-            'roles' => [
-                'role_1' => (bool)$admin['role_1'],
-                'role_2' => (bool)$admin['role_2'],
-                'role_3' => (bool)$admin['role_3'],
-                'role_4' => (bool)$admin['role_4']
-            ],
             'message' => 'Đăng Nhập thành công!'
         ];
         
