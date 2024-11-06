@@ -11,11 +11,11 @@ include_once __DIR__ . '/../../utils/helpers.php';
 $discount = new Discount($conn);
 
 try {
-    // Get pagination parameters
+    // Lấy các tham số phân trang
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
     
-    // Get results
+    // Lấy kết quả
     $result = $discount->read($page, $limit);
     $total_discounts = $discount->getTotalCount();
     
@@ -23,7 +23,7 @@ try {
         $discounts_arr = [];
         
         while ($row = $result->fetch_assoc()) {
-            // Calculate status
+            // Tính trạng thái
             $current_date = new DateTime();
             $valid_from = new DateTime($row['valid_from']);
             $valid_to = new DateTime($row['valid_to']);
@@ -57,7 +57,7 @@ try {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Discounts retrieved successfully',
+            'message' => 'Lấy danh sách discount thành công',
             'code' => 200,
             'data' => [
                 'discounts' => $discounts_arr,
@@ -74,7 +74,7 @@ try {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'No discounts found',
+            'message' => 'Không tìm thấy discount',
             'code' => 200,
             'data' => [
                 'discounts' => [],

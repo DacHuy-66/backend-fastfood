@@ -15,6 +15,7 @@ class Product
     public $sold;
     public $quantity;
     public $status;
+    public $lock;
     public $discount;
     public $created_at;
 
@@ -40,6 +41,7 @@ class Product
                     p.type,
                     p.quantity,
                     p.status,
+                    p.lock,
                     p.discount,
                     p.created_at
                 FROM
@@ -77,12 +79,12 @@ class Product
             $types .= "d";
         }
 
-        // Lọc theo trạng thái
-        // if (isset($filters['status'])) {
-        //     $query .= " AND p.status = ?";
-        //     $params[] = $filters['status'];
-        //     $types .= "i";
-        // }
+        if (isset($filters['status'])) {
+            $query .= " AND p.status = ?";
+            $params[] = $filters['status'];
+            $types .= "i";
+        }
+
 
         // Sắp xếp
         $allowedSortFields = ['name', 'price', 'created_at', 'sold'];
@@ -177,6 +179,7 @@ class Product
                     p.type,
                     p.quantity,
                     p.status,
+                    p.lock,
                     p.discount,
                     p.created_at
                 FROM
@@ -205,6 +208,7 @@ class Product
                       p.discount = ?, 
                       quantity = ?, 
                       status = ?, 
+                      lock = ?,
                   WHERE 
                       id = ?";
 
@@ -219,9 +223,10 @@ class Product
         $this->type = htmlspecialchars(strip_tags($this->type));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->status = htmlspecialchars(strip_tags($this->status)); 
+        $this->lock = htmlspecialchars(strip_tags($this->lock));
         $this->id = htmlspecialchars(strip_tags($this->id));
     
-        $stmt->bind_param("ssdssiisi", 
+        $stmt->bind_param("ssdssiisii", 
             $this->name, 
             $this->description, 
             $this->price, 
@@ -230,6 +235,7 @@ class Product
             $this->discount, 
             $this->quantity, 
             $this->status, 
+            $this->lock,
             $this->type, 
             $this->id
         );
@@ -241,59 +247,6 @@ class Product
         return false;
     }
 
-    // Tạo một sản phẩm mới
-    public function create() {
-        $query = "INSERT INTO " . $this->table . " 
-                  (name, description, price, image_url, sold, quantity, status, discount,type, created_at) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?,?, ?, NOW())";
-
-        $stmt = $this->conn->prepare($query);
-
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->price = htmlspecialchars(strip_tags($this->price));
-        $this->image_url = htmlspecialchars(strip_tags($this->image_url));
-        $this->sold = htmlspecialchars(strip_tags($this->sold));
-        $this->type = htmlspecialchars(strip_tags($this->type));
-        $this->discount = htmlspecialchars(strip_tags($this->discount));
-        $this->quantity = htmlspecialchars(strip_tags($this->quantity)); 
-        $this->status = htmlspecialchars(strip_tags($this->status)); 
-
-        $stmt->bind_param("ssdsssii", 
-            $this->name, 
-            $this->description, 
-            $this->price, 
-            $this->image_url, 
-            $this->sold, 
-            $this->type, 
-            $this->discount, 
-            $this->quantity, 
-            $this->status
-        );
-
-        if ($stmt->execute()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Xóa sản phẩm theo ID
-    public function delete() {
-        $query = "DELETE FROM " . $this->table . " WHERE id = ?";
-
-        $stmt = $this->conn->prepare($query);
-
-        $this->id = htmlspecialchars(strip_tags($this->id));
-
-        $stmt->bind_param("i", $this->id);
-
-        if ($stmt->execute()) {
-            return true;
-        }
-
-        return false;
-    }
 
     public function getTopSellingProducts($limit = 10, $filters = []) {
         // Xây dựng câu truy vấn cơ bản
@@ -307,6 +260,7 @@ class Product
                     p.type,
                     p.quantity,
                     p.status,
+                    p.lock,
                     p.discount,
                     p.created_at
                 FROM

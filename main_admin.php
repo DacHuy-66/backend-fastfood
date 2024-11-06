@@ -3,13 +3,11 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Add headers for debugging
 header('Access-Control-Allow-Origin: *');
 header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method,Access-Control-Request-Headers, Authorization");
 header('Content-Type: application/json');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
@@ -95,7 +93,7 @@ elseif (preg_match("/\/admin$/", $request_uri) || preg_match("/\/admin\?/", $req
             'options' => ['default' => 10, 'min_range' => 1, 'max_range' => 100]
         ]) : 10;
 
-        // Pass pagination parameters to list_admin.php
+        // truyền các tham số phân trang cho list_admin.php
         $_GET['page'] = $page;
         $_GET['limit'] = $limit;
 
@@ -115,8 +113,18 @@ elseif (preg_match("/\/admin$/", $request_uri) || preg_match("/\/admin\?/", $req
 // url http://localhost/WebDoAn/main_admin.php/admin/role
 elseif (strpos($request_uri, '/admin/role') !== false) {
     include './model/admin/role_admin.php';
-} 
+}
 
+// change password admin
+// {
+//     "current_password": "",
+//     "new_password": ""
+// }
+// X-Api-Key:....
+// url http://localhost/WebDoAn/main_admin.php/admin/changePass
+elseif (strpos($request_uri, '/admin/changePass') !== false) {
+    include './model/admin/changePass_admin.php';
+}
 
 else {
     echo json_encode([
@@ -126,5 +134,3 @@ else {
     ]);
     http_response_code(404);
 }
-
-?>

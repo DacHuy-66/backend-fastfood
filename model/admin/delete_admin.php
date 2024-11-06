@@ -1,5 +1,4 @@
 <?php
-// Include database connection
 include_once __DIR__ . '/../../config/db.php';
 
 // Set headers
@@ -8,18 +7,18 @@ header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIO
 header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization");
 header('Content-Type: application/json');
 
-// Handle preflight requests
+// Xử lý yêu cầu preflight
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Parse ID from the URL path
+// Lấy ID từ đường dẫn URL
 $request_uri = $_SERVER['REQUEST_URI'];
 $segments = explode('/', trim($request_uri, '/'));
 $id_admin = end($segments);
 
-// Check if admin ID is provided
+// Kiểm tra xem ID admin có được cung cấp hay không
 if (empty($id_admin)) {
     echo json_encode([
         'ok' => false,
@@ -30,14 +29,14 @@ if (empty($id_admin)) {
     exit;
 }
 
-// Validate admin ID
+// Kiểm tra ID admin
 $stmt = $conn->prepare("SELECT id FROM admin WHERE id = ?");
 $stmt->bind_param("s", $id_admin);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    // Admin exists, proceed with deleting the admin
+    // Admin tồn tại, tiến hành xóa admin
     $delete_stmt = $conn->prepare("DELETE FROM admin WHERE id = ?");
     $delete_stmt->bind_param("s", $id_admin);
 

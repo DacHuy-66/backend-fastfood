@@ -6,34 +6,33 @@ header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type
 
 include_once __DIR__ . '/../../config/db.php';
 
-// Check valid URL
 $current_url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 try {
     $data = json_decode(file_get_contents("php://input"));
 
-    // Validate required fields
+    // kiểm tra các trường bắt buộc
     if (!isset($data->user_id) || !isset($data->product_id) || !isset($data->rating)) {
-        throw new Exception('Missing required fields: user_id, product_id, and rating are required', 400);
+        throw new Exception('Thiếu các trường bắt buộc: user_id, product_id, và rating là bắt buộc', 400);
     }
 
     if (!is_numeric($data->rating) || $data->rating < 1 || $data->rating > 5) {
-        throw new Exception('Invalid rating. Must be between 1 and 5', 400);
+        throw new Exception('Đánh giá không hợp lệ. Phải nằm giữa 1 và 5', 400);
     }
 
-    // Prepare insert query
+    // chuẩn bị câu truy vấn chèn
     $query = "INSERT INTO reviews (user_id, product_id, rating, comment, image_1, image_2, image_3, created_at) 
               VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
     $stmt = $conn->prepare($query);
     
-    // Bind parameters
+    // gán các tham số
     $comment = $data->comment ?? '';
-    $image_1 = $data->image_1 ?? null; // Assuming image URLs are passed
+    $image_1 = $data->image_1 ?? null; // giả định là các đường dẫn hình ảnh được truyền
     $image_2 = $data->image_2 ?? null;
     $image_3 = $data->image_3 ?? null;
 
-    // Bind as strings for user_id and product_id, and other fields
+    // gán các tham số
     $stmt->bind_param("ssissss", 
         $data->user_id, 
         $data->product_id, 
@@ -47,7 +46,7 @@ try {
     if ($stmt->execute()) {
         $new_review_id = $conn->insert_id;
 
-        // Fetch the created review
+        // lấy đánh giá đã tạo
         $select_query = "SELECT r.*, u.username 
                          FROM reviews r
                          LEFT JOIN users u ON r.user_id = u.id 
@@ -65,7 +64,7 @@ try {
         ];
         http_response_code(201);
     } else {
-        throw new Exception('Failed to create review', 500);
+        throw new Exception('Không thể tạo đánh giá', 500);
     }
 
 } catch (Exception $e) {

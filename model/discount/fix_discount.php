@@ -11,29 +11,29 @@ include_once __DIR__ . '/../../utils/helpers.php';
 $discount = new Discount($conn);
 
 try {
-    // Get posted data
+    // Lấy dữ liệu được gửi đi
     $data = json_decode(file_get_contents("php://input"));
     
     if (!$data || !isset($data->id) || !isset($data->code) || !isset($data->description) || 
         !isset($data->discount_percent) || !isset($data->valid_from) || 
         !isset($data->valid_to)) {
-        throw new Exception("Missing required fields", 400);
+        throw new Exception("Thiếu các trường bắt buộc", 400);
     }
     
-    // Validate discount percentage
+    // Kiểm tra tỷ lệ giảm giá
     if ($data->discount_percent <= 0 || $data->discount_percent > 100) {
-        throw new Exception("Invalid discount percentage", 400);
+        throw new Exception("Tỷ lệ giảm giá không hợp lệ", 400);
     }
     
-    // Validate dates
+    // Kiểm tra ngày hợp lệ
     $valid_from = new DateTime($data->valid_from);
     $valid_to = new DateTime($data->valid_to);
     
     if ($valid_from > $valid_to) {
-        throw new Exception("Valid from date must be before valid to date", 400);
+        throw new Exception("Ngày bắt đầu phải trước ngày hết hạn", 400);
     }
     
-    // Set discount properties
+    // Đặt các thuộc tính của discount
     $discount->id = $data->id;
     $discount->code = $data->code;
     $discount->description = $data->description;
@@ -45,12 +45,12 @@ try {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Discount updated successfully',
+            'message' => 'Discount được cập nhật thành công',
             'code' => 200
         ];
         http_response_code(200);
     } else {
-        throw new Exception("Error updating discount", 500);
+        throw new Exception("Lỗi cập nhật discount", 500);
     }
 } catch (Exception $e) {
     $response = [

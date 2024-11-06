@@ -7,25 +7,25 @@ header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type
 include_once __DIR__ . '/../../config/db.php';
 
 try {
-    // Extract review ID from URL
+    // lấy ID đánh giá từ URL
     $url_parts = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
     $review_id = end($url_parts);
 
     if (!is_numeric($review_id)) {
-        throw new Exception('Invalid review ID', 400);
+        throw new Exception('ID đánh giá không hợp lệ', 400);
     }
 
-    // Get PUT data
+    // lấy dữ liệu PUT
     $data = json_decode(file_get_contents("php://input"));
 
-    // Validate rating if provided
+    // kiểm tra đánh giá nếu được cung cấp
     if (isset($data->rating)) {
         if (!is_numeric($data->rating) || $data->rating < 1 || $data->rating > 5) {
-            throw new Exception('Invalid rating. Must be between 1 and 5', 400);
+            throw new Exception('Đánh giá không hợp lệ. Phải nằm giữa 1 và 5', 400);
         }
     }
 
-    // Check if review exists
+    // kiểm tra xem đánh giá có tồn tại không
     $check_query = "SELECT * FROM reviews WHERE id = ?";
     $check_stmt = $conn->prepare($check_query);
     $check_stmt->bind_param("i", $review_id);
@@ -33,10 +33,10 @@ try {
     $result = $check_stmt->get_result();
 
     if ($result->num_rows === 0) {
-        throw new Exception('Review not found', 404);
+        throw new Exception('Không tìm thấy đánh giá', 404);
     }
 
-    // Build update query dynamically based on provided fields
+    // xây dựng câu truy vấn cập nhật dựa trên các trường được cung cấp
     $update_fields = array();
     $types = "";
     $values = array();
@@ -72,18 +72,18 @@ try {
     }
 
     if (empty($update_fields)) {
-        throw new Exception('No fields to update', 400);
+        throw new Exception('Không có trường nào để cập nhật', 400);
     }
 
-    // Add review_id to values array and types
+    // thêm ID đánh giá vào mảng giá trị và kiểu
     $values[] = $review_id;
     $types .= "i";
 
-    // Prepare and execute update query
+    // chuẩn bị và thực thi câu truy vấn cập nhật
     $query = "UPDATE reviews SET " . implode(", ", $update_fields) . " WHERE id = ?";
     $stmt = $conn->prepare($query);
 
-    // Dynamically bind parameters
+    // gán các tham số
     $bind_params = array($types);
     foreach ($values as $key => $value) {
         $bind_params[] = &$values[$key];
@@ -91,7 +91,7 @@ try {
     call_user_func_array(array($stmt, 'bind_param'), $bind_params);
 
     if ($stmt->execute()) {
-        // Fetch the updated review
+        // lấy đánh giá đã cập nhật
         $select_query = "SELECT r.*, u.username 
                         FROM reviews r
                         LEFT JOIN users u ON r.user_id = u.id 
@@ -103,13 +103,13 @@ try {
 
         $response = [
             'status' => 'success',
-            'message' => 'Review updated successfully',
+            'message' => 'Đánh giá đã cập nhật thành công',
             'code' => 200,
             'data' => $updated
         ];
         http_response_code(200);
     } else {
-        throw new Exception('Failed to update review', 500);
+        throw new Exception('Không thể cập nhật đánh giá', 500);
     }
 
 } catch (Exception $e) {

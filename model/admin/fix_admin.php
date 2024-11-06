@@ -1,5 +1,4 @@
 <?php
-// Include database connection
 include_once __DIR__ . '/../../config/db.php';
 
 // Set headers
@@ -8,20 +7,15 @@ header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIO
 header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method,Access-Control-Request-Headers, Authorization");
 header('Content-Type: application/json');
 
-// Handle preflight requests
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    header("HTTP/1.1 200 OK");
-    exit();
-}
 
-// Retrieve API key from headers
+// Lấy API key từ header
 $headers = apache_request_headers();
 
-$url_path = $_SERVER['REQUEST_URI'];
+$url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $path_parts = explode('/', trim($request_uri, '/'));
 $admin_id = end($path_parts);
-// Check if admin ID is provided
-if (empty($id_admin)) {
+// Kiểm tra xem ID admin có được cung cấp hay không
+if (empty($admin_id)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
@@ -31,7 +25,7 @@ if (empty($id_admin)) {
     exit;
 }
 
-// Validate admin ID
+// Kiểm tra ID admin
 $stmt = $conn->prepare("SELECT id FROM admin WHERE id = ?");
 $stmt->bind_param("s", $admin_id);
 $stmt->execute();
@@ -41,16 +35,16 @@ if ($result->num_rows > 0) {
     $admin_data = $result->fetch_assoc();
     $admin_id = $admin_data['id'];
 
-    // Admin is authenticated, proceed with updating data
+    // Admin đã xác thực, tiến hành cập nhật dữ liệu
     $input = file_get_contents("php://input");
     $data = json_decode($input, true);
 
-    // Get the new data from the parsed input
+    // Lấy dữ liệu mới từ dữ liệu được phân tích
     $updates = [];
     $types = "";
     $values = [];
 
-    // Prepare dynamic update fields
+    // Chuẩn bị các trường cập nhật động
     if (isset($data['username'])) {
         $updates[] = "username = ?";
         $types .= "s";
@@ -128,24 +122,24 @@ if ($result->num_rows > 0) {
         exit;
     }
 
-    // Add time update
+    // Thêm thời gian cập nhật
     $updates[] = "time = NOW()";
     
-    // Create the SQL query
+    // Tạo câu truy vấn SQL
     $sql = "UPDATE admin SET " . implode(", ", $updates) . " WHERE id = ?";
     
-    // Add admin ID to values and types
+    // Thêm ID admin vào giá trị và kiểu
     $values[] = $admin_id;
     $types .= "s";
     
-    // Prepare and execute the update
+    // Chuẩn bị và thực thi cập nhật
     $update_stmt = $conn->prepare($sql);
     
-    // Dynamically bind parameters
+    // Chuẩn bị và thực thi cập nhật
     $update_stmt->bind_param($types, ...$values);
 
     if ($update_stmt->execute()) {
-        // Fetch updated admin data
+        // Lấy dữ liệu admin đã cập nhật
         $select_stmt = $conn->prepare("SELECT id, username, email, 'order', mess, 'statistics', user, product, discount, layout, decentralization, note, time FROM admin WHERE id = ?");
         $select_stmt->bind_param("s", $admin_id);
         $select_stmt->execute();

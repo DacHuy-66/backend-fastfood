@@ -11,12 +11,12 @@ include_once __DIR__ . '/../../utils/helpers.php';
 $discount_history = new DiscountHistory($conn);
 
 try {
-    // Get pagination parameters
+    // Lấy các tham số phân trang
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
     $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;
     
-    // Get results
+    // Lấy kết quả
     $result = $discount_history->read($page, $limit, $user_id);
     $total_records = $discount_history->getTotalCount($user_id);
     

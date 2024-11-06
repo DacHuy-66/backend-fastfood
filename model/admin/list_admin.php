@@ -1,5 +1,4 @@
 <?php
-// File: ./model/admin/list_admin.php
 
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
@@ -9,17 +8,17 @@ header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type
 include_once __DIR__ . '/../../config/db.php';
 
 try {
-    // Initialize pagination parameters
+    // Khởi tạo tham số phân trang
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 20;
     $offset = ($page - 1) * $limit;
 
-    // Initialize sorting and search parameters
+    // Khởi tạo tham số sắp xếp và tìm kiếm
     $search = isset($_GET['q']) ? trim($_GET['q']) : '';
     $sort_by = isset($_GET['sort_by']) ? trim($_GET['sort_by']) : 'id';
     $sort_order = isset($_GET['sort_order']) && strtoupper($_GET['sort_order']) === 'ASC' ? 'ASC' : 'DESC';
 
-    // Prepare the SQL query
+    // Chuẩn bị câu truy vấn SQL
     $sql = "SELECT id, username, email, password, `order`, mess, statistics, user, product, discount, layout, decentralization, note, time 
            FROM admin 
            WHERE (username LIKE ? OR email LIKE ?) 
@@ -33,10 +32,10 @@ try {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Fetch admins data
+    // Lấy dữ liệu admin
     $admins_arr = [];
     while ($row = $result->fetch_assoc()) {
-        // Format data appropriately
+        // Định dạng dữ liệu thích hợp
         $row['password'] = (string)$row['password'];
         $row['order'] = (bool)$row['order'];
         $row['mess'] = (bool)$row['mess'];
@@ -49,7 +48,7 @@ try {
         $admins_arr[] = $row;
     }
 
-    // Get total number of admins for pagination
+    // Lấy tổng số lượng admin cho phân trang
     $count_sql = "SELECT COUNT(id) AS total 
                   FROM admin 
                   WHERE (username LIKE ? OR email LIKE ?) 
@@ -60,12 +59,12 @@ try {
     $total_result = $count_stmt->get_result()->fetch_assoc();
     $total_admins = $total_result['total'];
     
-    // Close statements
+    // Đóng các câu truy vấn
     $stmt->close();
     $count_stmt->close();
     $conn->close();
 
-    // Prepare response
+    // Chuẩn bị phản hồi
     $response = [
         'ok' => true,
         'status' => 'success',

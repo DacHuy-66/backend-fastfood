@@ -1,5 +1,4 @@
 <?php
-// Include database connection configuration
 header("Access-Control-Allow-Origin: *");  // Or specify your frontend domain
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, X-Api-Key");
@@ -7,24 +6,23 @@ header('Content-Type: application/json'); // Set content type to JSON
 
 include_once __DIR__ . '/../../config/db.php';
 
-// Define the default avatar URL
 $default_avatar = 'https://thumbs.dreamstime.com/b/default-avatar-profile-image-vector-social-media-user-icon-potrait-182347582.jpg';
 
-// Get the API key from the headers
+// lấy api key từ header
 $headers = getallheaders();
 $api_key = $headers['X-Api-Key'] ?? '';
 
-// Check if API key is provided
+// kiểm tra xem api key có được cung cấp không
 if (empty($api_key)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'API key is missing.'
+        'message' => 'API key bị thiếu.'
     ]);
     exit;
 }
 
-// Check if the API key exists in the database
+// kiểm tra xem api key có tồn tại trong cơ sở dữ liệu không
 $sql = "SELECT * FROM users WHERE api_key = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $api_key);
@@ -32,13 +30,13 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    // API key is valid, fetch user details
+    // api key hợp lệ, lấy thông tin người dùng
     $user = $result->fetch_assoc();
     
-    // Assign default avatar if avata field is empty
+    // gán avatar mặc định nếu trường avata trống
     $avatar = $user['avata'] ?: $default_avatar;
 
-    // Fetch the user's address details
+    // lấy thông tin địa chỉ của người dùng
     $address_sql = "SELECT * FROM detail_address WHERE user_id = ?";
     $address_stmt = $conn->prepare($address_sql);
     $address_stmt->bind_param("s", $user['id']);
@@ -50,7 +48,7 @@ if ($result->num_rows > 0) {
         $addresses[] = $address;
     }
 
-    // Fetch user's reviews
+    // lấy đánh giá của người dùng
     $reviews_sql = "SELECT r.*, p.name as product_name 
                    FROM reviews r 
                    LEFT JOIN products p ON r.product_id = p.id 
@@ -72,7 +70,7 @@ if ($result->num_rows > 0) {
         ];
     }
 
-    // Fetch user's discount information
+    // lấy thông tin khuyến mãi của người dùng
     $discount_sql = "SELECT * FROM discount_user 
                     WHERE user_id = ? 
                     AND valid_from <= CURRENT_DATE 
@@ -94,7 +92,7 @@ if ($result->num_rows > 0) {
         ];
     }
 
-    // Prepare the response data structure
+    // chuẩn bị cấu trúc dữ liệu phản hồi
     $response = [
         'ok' => true,
         'success' => true,
@@ -110,18 +108,17 @@ if ($result->num_rows > 0) {
         ]
     ];
 
-    // Return the response as JSON
+    // trả về phản hồi dưới dạng JSON
     echo json_encode($response);
 } else {
-    // Invalid API key  
+    // api key không hợp lệ
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Invalid API key.'
+        'message' => 'API key không hợp lệ.'
     ]);
     http_response_code(404);
 }
 
-// Close the connection
 $conn->close();
 ?>

@@ -5,7 +5,6 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
-// Get order process steps
 function getOrderProcessSteps($conn) {
     $result = $conn->query("SELECT * FROM order_process ORDER BY order_number");
     $steps = [];
@@ -16,13 +15,13 @@ function getOrderProcessSteps($conn) {
 }
 
 
-// Combine all order process data
+// Kết hợp tất cả dữ liệu quá trình đặt hàng
 try {
     $response = [
         'steps' => getOrderProcessSteps($conn)
     ];
     
-    // Add next step references
+    // thêm tham chiếu bước tiếp theo
     foreach ($response['steps'] as $index => &$step) {
         if (isset($response['steps'][$index + 1])) {
             $step['next_step'] = $response['steps'][$index + 1]['step_number'];
@@ -34,6 +33,6 @@ try {
     echo json_encode($response, JSON_UNESCAPED_UNICODE);
 } catch(Exception $e) {
     echo json_encode([
-        'error' => 'An error occurred: ' . $e->getMessage()
+        'error' => 'Đã xảy ra lỗi: ' . $e->getMessage()
     ]);
 }

@@ -69,44 +69,35 @@ class Promotion {
     }
 
     // Read Promotions with pagination
-    public function read($page = 1, $limit = 10, $active_only = false) {
+    public function read($page = 1, $limit = 10, $search = '') {
         $offset = ($page - 1) * $limit;
         
-        // Base query
-        $query = "SELECT * FROM " . $this->table;
-        
-        // Add active filter if requested
-        if ($active_only) {
-            $query .= " WHERE start_date <= CURRENT_DATE 
-                       AND end_date >= CURRENT_DATE";
+        $searchCondition = '';
+        if (!empty($search)) {
+            $search = $this->conn->real_escape_string($search);
+            $searchCondition = " WHERE title LIKE '%$search%' OR description LIKE '%$search%'";
         }
         
-        // Add ordering and pagination
-        $query .= " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-
-        // Prepare statement
+        $query = "SELECT * FROM promotions" . $searchCondition . " ORDER BY created_at DESC LIMIT ?, ?";
+        
         $stmt = $this->conn->prepare($query);
-
-        // Bind parameters
-        $stmt->bind_param("ii", $limit, $offset);
-
-        // Execute query
+        $stmt->bind_param("ii", $offset, $limit);
         $stmt->execute();
+        
         return $stmt->get_result();
     }
 
     // Get total count of promotions
-    public function getTotalCount($active_only = false) {
-        $query = "SELECT COUNT(*) as total FROM " . $this->table;
-        
-        if ($active_only) {
-            $query .= " WHERE start_date <= CURRENT_DATE 
-                       AND end_date >= CURRENT_DATE";
+    public function getTotalCount($search = '') {
+        $searchCondition = '';
+        if (!empty($search)) {
+            $search = $this->conn->real_escape_string($search);
+            $searchCondition = " WHERE title LIKE '%$search%' OR description LIKE '%$search%'";
         }
         
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
+        $query = "SELECT COUNT(*) as total FROM promotions" . $searchCondition;
+        $result = $this->conn->query($query);
+        $row = $result->fetch_assoc();
         return $row['total'];
     }
 

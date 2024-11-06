@@ -13,7 +13,7 @@ try {
     
     // Kiểm tra ID có hợp lệ không
     if (!filter_var($review_id, FILTER_VALIDATE_INT)) {
-        throw new Exception('Invalid review ID format', 400);
+        throw new Exception('Định dạng ID đánh giá không hợp lệ', 400);
     }
 
     // Kiểm tra review có tồn tại không
@@ -24,7 +24,7 @@ try {
     $result = $select_stmt->get_result();
     
     if ($result->num_rows === 0) {
-        throw new Exception('Review not found', 404);
+        throw new Exception('Không tìm thấy đánh giá', 404);
     }
     
     $review = $result->fetch_assoc();
@@ -38,12 +38,12 @@ try {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Review deleted successfully',
+            'message' => 'Đánh giá đã xóa thành công',
             'code' => 200,
         ];
         http_response_code(200);
     } else {
-        throw new Exception('Failed to delete review', 500);
+        throw new Exception('Không thể xóa đánh giá', 500);
     }
 
 } catch (Exception $e) {

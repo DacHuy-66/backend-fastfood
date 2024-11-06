@@ -1,5 +1,4 @@
 <?php
-// Database connection
 include_once __DIR__ . '/../../config/db.php';
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -8,9 +7,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 // Get JSON input
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Note: $user_id is now passed from the route handler
-
-// Validate required fields
+// Kiểm tra các trường bắt buộc
 $required_fields = ['address', 'phone'];
 $missing_fields = [];
 
@@ -24,31 +21,31 @@ if (!empty($missing_fields)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Missing required fields: ' . implode(', ', $missing_fields),
+        'message' => 'Thiếu các trường bắt buộc: ' . implode(', ', $missing_fields),
         'limit' => true
     ]);
     http_response_code(400);
     exit;
 }
 
-// Sanitize input data
+// Làm sạch dữ liệu đầu vào
 $address = trim($data['address']);
 $phone = trim($data['phone']);
 $note = isset($data['note']) ? trim($data['note']) : ''; // Optional field
 
-// Validate phone number format (basic validation)
+// Kiểm tra định dạng số điện thoại (kiểm tra cơ bản)
 if (!preg_match('/^[0-9+\-\s()]*$/', $phone)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Invalid phone number format.',
+        'message' => 'Định dạng số điện thoại không hợp lệ.',
         'limit' => true
     ]);
     http_response_code(400);
     exit;
 }
 
-// Check if user exists
+// Kiểm tra xem user có tồn tại không
 $stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
 $stmt->bind_param("s", $user_id);
 $stmt->execute();
@@ -58,7 +55,7 @@ if ($result->num_rows === 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'User not found.',
+        'message' => 'Người dùng không tồn tại.',
         'limit' => true
     ]);
     http_response_code(404);
@@ -67,7 +64,7 @@ if ($result->num_rows === 0) {
 }
 $stmt->close();
 
-// Check if the user has reached the address limit (3)
+// Kiểm tra xem user đã đạt đến giới hạn địa chỉ (3)
 $count_stmt = $conn->prepare("SELECT COUNT(*) as address_count FROM detail_address WHERE user_id = ?");
 $count_stmt->bind_param("s", $user_id);
 $count_stmt->execute();
@@ -78,7 +75,7 @@ if ($count_data['address_count'] >= 3) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Address limit reached. You can only add up to 3 addresses.',
+        'message' => 'Đã đạt đến giới hạn địa chỉ. Bạn chỉ có thể thêm tối đa 3 địa chỉ.',
         'limit' => false
     ]);
     http_response_code(400);
@@ -87,7 +84,7 @@ if ($count_data['address_count'] >= 3) {
 }
 $count_stmt->close();
 
-// Check for duplicate note for the same user
+// Kiểm tra xem note đã tồn tại cho user đó chưa
 if (!empty($note)) {
     $check_stmt = $conn->prepare("SELECT id FROM detail_address WHERE user_id = ? AND note = ?");
     $check_stmt->bind_param("ss", $user_id, $note);
@@ -98,7 +95,7 @@ if (!empty($note)) {
         echo json_encode([
             'ok' => false,
             'success' => false,
-            'message' => 'The specified note already exists for this user. Please choose a different one.',
+            'message' => 'Note đã tồn tại cho user này. Vui lòng chọn một khác.',
             'status' => false,
             'limit' => true
         ]);
@@ -109,7 +106,7 @@ if (!empty($note)) {
     $check_stmt->close();
 }
 
-// Insert new address
+// Thêm địa chỉ mới
 $stmt = $conn->prepare("INSERT INTO detail_address (user_id, address, phone, note) VALUES (?, ?, ?, ?)");
 $stmt->bind_param("ssss", $user_id, $address, $phone, $note);
 
@@ -117,7 +114,7 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => true,
         'success' => true,
-        'message' => 'Address created successfully.',
+        'message' => 'Địa chỉ được tạo thành công.',
         'limit' => true
     ]);
     http_response_code(201);
@@ -125,7 +122,7 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Failed to create address: ' . $stmt->error,
+        'message' => 'Lỗi tạo địa chỉ: ' . $stmt->error,
         'limit' => true
     ]);
     http_response_code(500);
@@ -133,4 +130,3 @@ if ($stmt->execute()) {
 
 $stmt->close();
 $conn->close();
-?>

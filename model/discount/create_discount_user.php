@@ -1,5 +1,4 @@
 <?php
-// File: create_discount_user.php
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: POST');
@@ -10,25 +9,25 @@ include_once __DIR__ . '/../../model/Discount_user.php';
 
 $discount = new DiscountUser($conn);
 
-// Get posted data
+// Lấy dữ liệu được gửi đi
 $data = json_decode(file_get_contents("php://input"));
 
 try {
-    // Validate required fields
+    // Kiểm tra các trường bắt buộc
     if (empty($data->user_id) || empty($data->valid_from) || empty($data->valid_to)) {
-        throw new Exception("Missing required fields", 400);
+        throw new Exception("Thiếu các trường bắt buộc", 400);
     }
 
-    // Validate dates
+    // Kiểm tra ngày hợp lệ
     $valid_from = new DateTime($data->valid_from);
     $valid_to = new DateTime($data->valid_to);
     $today = new DateTime();
 
     if ($valid_to < $valid_from) {
-        throw new Exception("Valid to date must be after valid from date", 400);
+        throw new Exception("Ngày hết hạn phải sau ngày bắt đầu", 400);
     }
 
-    // Set discount properties
+    // Đặt các thuộc tính của discount
     $discount->name = $data->name ?? '';
     $discount->user_id = $data->user_id;
     $discount->description = $data->description ?? '';
@@ -38,20 +37,20 @@ try {
     $discount->valid_from = $data->valid_from;
     $discount->valid_to = $data->valid_to;
 
-    // Generate unique code if not provided
+    // Tạo mã duy nhất nếu không được cung cấp
     $discount->code = $data->code ?? $discount->generateUniqueCode();
 
-    // Check if code already exists
+    // Kiểm tra xem mã đã tồn tại hay chưa
     if ($discount->isCodeExists($discount->code)) {
-        throw new Exception("Discount code already exists", 400);
+        throw new Exception("Mã giảm giá đã tồn tại", 400);
     }
 
-    // Create the discount
+    // Tạo discount
     if ($discount->create()) {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Discount created successfully',
+            'message' => 'Discount được tạo thành công',
             'code' => 201,
             'data' => [
                 'code' => $discount->code,

@@ -11,11 +11,11 @@ include_once __DIR__ . '/../../utils/helpers.php';
 $discount = new Discount($conn);
 
 try {
-    // Get data
+    // Lấy dữ liệu
     $data = json_decode(file_get_contents("php://input"));
     
     if (!$data || !isset($data->id)) {
-        throw new Exception("Missing discount ID", 400);
+        throw new Exception("Thiếu ID discount", 400);
     }
     
     $discount->id = $data->id;
@@ -24,12 +24,12 @@ try {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Discount deleted successfully',
+            'message' => 'Discount được xóa thành công',
             'code' => 200
         ];
         http_response_code(200);
     } else {
-        throw new Exception("Cannot delete discount that is in use", 400);
+        throw new Exception("Không thể xóa discount đang được sử dụng", 400);
     }
 } catch (Exception $e) {
     $response = [

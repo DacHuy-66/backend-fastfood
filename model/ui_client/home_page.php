@@ -5,13 +5,13 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
-// Get company info
+// lấy thông tin công ty
 function getCompanyInfo($conn) {
     $result = $conn->query("SELECT * FROM company_info LIMIT 1");
     return $result->fetch_assoc();
 }
 
-// Get contact info
+// lấy thông tin liên hệ
 function getContactInfo($conn) {
     $result = $conn->query("SELECT * FROM contact_info");
     $contacts = [];
@@ -25,7 +25,7 @@ function getContactInfo($conn) {
     ];
 }
 
-// Get social media links
+// lấy liên kết mạng xã hội
 function getSocialMedia($conn) {
     $result = $conn->query("SELECT * FROM social_media");
     $socialMedia = [];
@@ -35,7 +35,7 @@ function getSocialMedia($conn) {
     return $socialMedia;
 }
 
-// Get footer links
+// lấy liên kết footer
 function getFooterLinks($conn) {
     $result = $conn->query("SELECT * FROM footer_links");
     $footerLinks = [];
@@ -45,13 +45,13 @@ function getFooterLinks($conn) {
     return $footerLinks;
 }
 
-// Get newsletter section
+// lấy phần newsletter
 function getNewsletter($conn) {
     $result = $conn->query("SELECT * FROM newsletter_section LIMIT 1");
     return $result->fetch_assoc();
 }
 
-// Combine all data
+// kết hợp tất cả dữ liệu
 try {
     $response = [
         'companyInfo' => getCompanyInfo($conn),
@@ -65,6 +65,6 @@ try {
     echo json_encode($response, JSON_UNESCAPED_UNICODE);
 } catch(Exception $e) {
     echo json_encode([
-        'error' => 'An error occurred: ' . $e->getMessage()
+        'error' => 'Đã xảy ra lỗi: ' . $e->getMessage()
     ]);
 }

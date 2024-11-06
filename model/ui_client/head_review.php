@@ -34,6 +34,6 @@ try {
     echo json_encode($response, JSON_UNESCAPED_UNICODE);
 } catch(Exception $e) {
     echo json_encode([
-        'error' => 'An error occurred: ' . $e->getMessage()
+        'error' => 'Đã xảy ra lỗi: ' . $e->getMessage()
     ]);
 }

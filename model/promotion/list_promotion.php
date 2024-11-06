@@ -4,16 +4,19 @@ include_once __DIR__ . '/../../utils/helpers.php';
 include_once __DIR__ . '/../../model/Promotion.php';
 
 setDefaultCorsHeaders();
-// Initialize the Promotion class
+// khởi tạo lớp Promotion
 $promotion = new Promotion($conn);
 
-// Get pagination parameters
+// lấy các tham số phân trang
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
 
-// Get results
-$result = $promotion->read($page, $limit);
-$total_promotions = $promotion->getTotalCount();
+// lấy tham số tìm kiếm
+$search = isset($_GET['q']) ? $_GET['q'] : '';
+
+// lấy kết quả
+$result = $promotion->read($page, $limit, $search);
+$total_promotions = $promotion->getTotalCount($search);
 
 if ($result->num_rows > 0) {
     $promotions_arr = [];
@@ -38,7 +41,7 @@ if ($result->num_rows > 0) {
     $response = [
         'ok' => true,
         'status' => 'success',
-        'message' => 'Promotions retrieved successfully',
+        'message' => 'Khuyến mãi đã lấy thành công',
         'code' => 200,
         'data' => [
             'promotions' => $promotions_arr,
@@ -55,7 +58,7 @@ if ($result->num_rows > 0) {
     $response = [
         'ok' => false,
         'status' => 'error',
-        'message' => 'No promotions found',
+        'message' => 'Không tìm thấy khuyến mãi',
         'code' => 404,
         'data' => []
     ];

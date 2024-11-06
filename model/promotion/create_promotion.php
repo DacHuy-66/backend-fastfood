@@ -8,7 +8,7 @@ setDefaultCorsHeaders();
 $promotion = new Promotion($conn);
 
 try {
-    // Get posted data
+    // lấy dữ liệu được gửi từ client
     $data = json_decode(file_get_contents("php://input"));
 
     if (
@@ -17,15 +17,15 @@ try {
         !isset($data->end_date) || !isset($data->min_order_value) ||
         !isset($data->max_discount)
     ) {
-        throw new Exception("Missing required fields", 400);
+        throw new Exception("Thiếu các trường bắt buộc", 400);
     }
 
-    // Validate discount percentage
+    // kiểm tra tỷ lệ chiết khấu
     if ($data->discount_percent <= 0 || $data->discount_percent > 100) {
-        throw new Exception("Invalid discount percentage", 400);
+        throw new Exception("Tỷ lệ chiết khấu không hợp lệ", 400);
     }
 
-    // Set promotion properties
+    // gán các thuộc tính của promotion
     $promotion->title = $data->title;
     $promotion->description = $data->description;
     $promotion->discount_percent = $data->discount_percent;
@@ -38,12 +38,12 @@ try {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Promotion created successfully',
+            'message' => 'Khuyến mãi đã tạo thành công',
             'code' => 201
         ];
         http_response_code(201);
     } else {
-        throw new Exception("Error creating promotion", 500);
+        throw new Exception("Lỗi tạo khuyến mãi", 500);
     }
 } catch (Exception $e) {
     $response = [

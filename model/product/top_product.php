@@ -22,24 +22,25 @@ try {
     $result = $product->getTopSellingProducts($limit, $filters);
     $products_arr = [];
 
-    // Prepare the average rating statement once
+    // Chuẩn bị câu lệnh tính điểm trung bình một lần
     $avg_rating_stmt = $conn->prepare("SELECT AVG(rating) AS average_rating FROM reviews WHERE product_id = ?");
 
     while ($row = $result->fetch_assoc()) {
-        // Get average rating
+        // Lấy điểm trung bình
         $avg_rating_stmt->bind_param("s", $row['id']);
         $avg_rating_stmt->execute();
         $avg_rating_result = $avg_rating_stmt->get_result()->fetch_assoc();
         $average_rating = $avg_rating_result['average_rating'] !== null ? round((float)$avg_rating_result['average_rating'], 1) : 0;
 
-        // Add additional fields
+        // Thêm các trường bổ sung
         $row['average_rating'] = $average_rating;
 
-        // Convert numeric fields to appropriate types
+        // Chuyển đổi các trường số thành kiểu thích hợp
         $row['price'] = (float)$row['price'];
         $row['sold'] = (int)$row['sold'];
         $row['quantity'] = (int)$row['quantity'];
-        $row['status'] = (int)$row['status'];
+        $row['status'] = (bool)$row['status'];
+        $row['lock'] = (bool)$row['lock'];
         $row['discount'] = $row['discount'] !== null ? (float)$row['discount'] : null;
 
         $products_arr[] = $row;
@@ -50,7 +51,7 @@ try {
     $response = [
         'ok' => true,
         'status' => 'success',
-        'message' => 'Top selling products retrieved successfully',
+        'message' => 'Lấy sản phẩm bán chạy thành công',
         'code' => 200,
         'data' => [
             'products' => $products_arr,

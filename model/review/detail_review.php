@@ -6,18 +6,17 @@ header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type
 
 include_once __DIR__ . '/../../config/db.php';
 
-// Check valid URL
 $current_url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 
 try {
     if (!isset($_GET['id'])) {
-        throw new Exception('Review ID is required', 400);
+        throw new Exception('ID đánh giá là bắt buộc', 400);
     }
 
     $review_id = $_GET['id'];
     if (!filter_var($review_id, FILTER_VALIDATE_INT)) {
-        throw new Exception('Invalid review ID format', 400);
+        throw new Exception('Định dạng ID đánh giá không hợp lệ', 400);
     }
     
     $query = "SELECT r.*, u.username 
@@ -34,13 +33,13 @@ try {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Review retrieved successfully',
+            'message' => 'Lấy đánh giá thành công',
             'code' => 200,
             'data' => $result->fetch_assoc()
         ];
         http_response_code(200);
     } else {
-        throw new Exception('Review not found', 404);
+        throw new Exception('Không tìm thấy đánh giá', 404);
     }
 
 } catch (Exception $e) {

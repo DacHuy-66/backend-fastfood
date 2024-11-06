@@ -1,5 +1,4 @@
 <?php
-// File: delete_discount_user.php
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: DELETE');
@@ -10,22 +9,22 @@ include_once __DIR__ . '/../../model/Discount_user.php';
 
 $discount = new DiscountUser($conn);
 
-// Get discount_id from URL
+// Lấy discount_id từ URL
 $request_uri = $_SERVER['REQUEST_URI'];
 
 
 $discount_id = $matches[1];
 
 try {
-    // Set ID property
+    // Đặt ID thuộc tính
     $discount->id = $discount_id;
 
-    // Delete the discount
+    // Xóa discount
     if ($discount->delete()) {
         $response = [
             'ok' => true,
             'status' => 'success',
-            'message' => 'Discount deleted successfully',
+            'message' => 'Discount được xóa thành công',
             'code' => 200,
             'data' => [
                 'id' => $discount_id
@@ -33,7 +32,7 @@ try {
         ];
         http_response_code(200);
     } else {
-        throw new Exception("Failed to delete discount", 500);
+        throw new Exception("Lỗi xóa discount", 500);
     }
 } catch (Exception $e) {
     $response = [

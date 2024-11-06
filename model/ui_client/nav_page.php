@@ -1,7 +1,7 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
 
-// Get navigation menu items
+// lấy menu điều hướng
 function getNavMenu($conn) {
     $result = $conn->query("SELECT * FROM nav_menu WHERE is_active = 1 ORDER BY order_number ASC");
     $menu = [];
@@ -18,18 +18,18 @@ function getNavMenu($conn) {
     return $menu;
 }
 
-// Get complete navbar data
+// kết hợp tất cả dữ liệu
 try {
     $response = [
         'menu' => getNavMenu($conn),
-        'isFixed' => true, // Có thể thêm vào settings nếu cần
-        'className' => 'main-navbar', // Có thể thêm vào settings nếu cần,
+        'isFixed' => true, 
+        'className' => 'main-navbar', 
         'ok' => true
     ];
     
     echo json_encode($response, JSON_UNESCAPED_UNICODE);
 } catch(Exception $e) {
     echo json_encode([
-        'error' => 'An error occurred: ' . $e->getMessage()
+        'error' => 'Đã xảy ra lỗi: ' . $e->getMessage()
     ]);
 }

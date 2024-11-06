@@ -1,13 +1,11 @@
 <?php
-// Database connection
 include_once __DIR__ . '/../../config/db.php';
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
-// Get JSON input
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Validate required fields
+// kiểm tra các trường bắt buộc
 $required_fields = ['username', 'email', 'password'];
 $missing_fields = [];
 
@@ -27,13 +25,13 @@ if (!empty($missing_fields)) {
     exit;
 }
 
-// Sanitize and validate input data
+// làm sạch và kiểm tra dữ liệu đầu vào
 $username = trim($data['username']);
 $email = trim($data['email']);
 $password = trim($data['password']);
 
 
-// Validate email format
+// kiểm tra định dạng email
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode([
         'ok' => false,
@@ -44,7 +42,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-// Validate username length
+// kiểm tra độ dài tên đăng nhập
 if (strlen($username) < 3 || strlen($username) > 50) {
     echo json_encode([
         'ok' => false,
@@ -55,7 +53,7 @@ if (strlen($username) < 3 || strlen($username) > 50) {
     exit;
 }
 
-// Validate password length
+// kiểm tra độ dài mật khẩu
 if (strlen($password) < 1) {
     echo json_encode([
         'ok' => false,
@@ -66,7 +64,7 @@ if (strlen($password) < 1) {
     exit;
 }
 
-// Check if email already exists
+// kiểm tra xem email đã tồn tại chưa
 $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
@@ -86,19 +84,19 @@ $stmt->close();
 
 
 
-// Generate unique ID and API key
+// tạo ID và API key duy nhất
 $user_id = uniqid();
 $api_key = bin2hex(random_bytes(32)); 
-$default_avata = 'https://tse4.mm.bing.net/th?id=OIP.Zmki3GIiRk-XKTzRRlxn4QHaER&pid=Api&P=0&h=220'; // Set default avatar path
-// Default role is user (0)
+$default_avata = 'https://tse4.mm.bing.net/th?id=OIP.Zmki3GIiRk-XKTzRRlxn4QHaER&pid=Api&P=0&h=220'; // đường dẫn mặc định cho avatar
+// vai trò mặc định là user (0)
 $role = '0';
 
-// Insert new user
+// chèn người dùng mới
 $stmt = $conn->prepare("INSERT INTO users (id, username, email, password, api_key, role, avata) VALUES (?, ?, ?, ?, ?, ?, ?)");
 $stmt->bind_param("sssssss", $user_id, $username, $email, $password, $api_key, $role, $default_avata);
 
 if ($stmt->execute()) {
-    // Return success with user data (excluding password)
+    // trả về thành công với dữ liệu người dùng (không bao gồm mật khẩu)
     echo json_encode([
         'ok' => true,
         'success' => true,

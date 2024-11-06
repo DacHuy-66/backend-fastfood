@@ -1,5 +1,4 @@
 <?php
-// Include database connection configuration
 include_once __DIR__ . '/../../config/db.php';
 
 // Nhận dữ liệu từ client
@@ -33,13 +32,13 @@ if ($result->num_rows > 0) {
                 'ok' => true,
                 'success' => true,
                 'api_key' => $api_key,
-                'message' => 'API key created successfully.'
+                'message' => 'API key được tạo thành công.'
             ]);
         } else {
             echo json_encode([
                 'ok' => false,
                 'success' => false,
-                'message' => 'Failed to update API key in the database.'
+                'message' => 'Lỗi cập nhật API key trong cơ sở dữ liệu.'
             ]);
         }
     } else {
@@ -48,7 +47,7 @@ if ($result->num_rows > 0) {
             'ok' => false,
             'status' => 'block',
             'success' => false,
-            'message' => 'User does not have permission to generate API key.'
+            'message' => 'Người dùng không có quyền tạo API key.'
         ]);
     }
 } else {
@@ -56,7 +55,7 @@ if ($result->num_rows > 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Invalid username or password.'
+        'message' => 'Tên đăng nhập hoặc mật khẩu không hợp lệ.'
     ]);
 }
 

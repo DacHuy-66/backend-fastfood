@@ -1,5 +1,4 @@
 <?php
-// File: ./model/discount/list_discount_user.php
 
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
@@ -10,7 +9,7 @@ include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../model/Discount_user.php';
 include_once __DIR__ . '/../../utils/helpers.php';
 
-// Extract user_id from URL
+// Lấy user_id từ URL
 $request_uri = $_SERVER['REQUEST_URI'];
 if (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
     $user_id = $matches[1];
@@ -18,7 +17,7 @@ if (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
     echo json_encode([
         'ok' => false,
         'status' => 'error',
-        'message' => 'Invalid URL format. Expected: /discount/user/{user_id}',
+        'message' => 'Định dạng URL không hợp lệ. Expected: /discount/user/{user_id}',
         'code' => 400
     ]);
     http_response_code(400);
@@ -28,21 +27,21 @@ if (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
 $discount_user = new DiscountUser($conn);
 
 try {
-    // Get pagination parameters
+    // Lấy các tham số phân trang
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 40;
     
-    // Get discounts list for specific user
+    // Lấy danh sách discount cho user cụ thể
     $result = $discount_user->read($page, $limit, $user_id);
     $total_discounts = $discount_user->getTotalCount($user_id);
     $discounts_arr = [];
     
     if (!$result) {
-        throw new Exception("No discounts found for user ID: $user_id", 404);
+        throw new Exception("Không tìm thấy discount cho user ID: $user_id", 404);
     }
     
     while ($row = $result->fetch_assoc()) {
-        // Format dates
+        // Định dạng ngày
         $valid_from = new DateTime($row['valid_from']);
         $valid_to = new DateTime($row['valid_to']);
         
@@ -69,7 +68,7 @@ try {
     $response = [
         'ok' => true,
         'status' => 'success',
-        'message' => 'User discounts retrieved successfully',
+        'message' => 'Lấy danh sách discount cho user thành công',
         'code' => 200,
         'data' => [
             'user_id' => $user_id,

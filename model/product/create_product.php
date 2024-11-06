@@ -1,14 +1,13 @@
 <?php
-// Database connection
 include_once __DIR__ . '/../../config/db.php';
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-// Get JSON input
+// Lấy dữ liệu JSON từ input
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Validate required fields based on products table schema
+// Kiểm tra các trường bắt buộc dựa trên schema của bảng products
 $required_fields = ['name', 'description', 'type', 'price', 'quantity'];
 $missing_fields = [];
 
@@ -22,87 +21,93 @@ if (!empty($missing_fields)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Missing required fields: ' . implode(', ', $missing_fields)
+        'message' => 'Thiếu các trường bắt buộc: ' . implode(', ', $missing_fields)
     ]);
     http_response_code(400);
     exit;
 }
 
-// Sanitize and validate input data
+// Làm sạch và kiểm tra dữ liệu đầu vào
 $name = trim($data['name']);
 $description = trim($data['description']);
 $type = trim($data['type']);
 $price = floatval($data['price']);
 $quantity = intval($data['quantity']);
 $status = isset($data['status']) ? $data['status'] : true;
+$lock = isset($data['lock']) ? $data['lock'] : false;
 $discount = isset($data['discount']) ? trim($data['discount']) : null;
 $image_url = isset($data['image_url']) ? trim($data['image_url']) : null;
 $created_at = date('Y-m-d H:i:s');
 
-// Validate product name length
+// Kiểm tra độ dài tên sản phẩm
 if (strlen($name) < 2 || strlen($name) > 100) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Product name must be between 2 and 100 characters.'
+        'message' => 'Tên sản phẩm phải có độ dài từ 2 đến 100 ký tự.'
     ]);
     http_response_code(400);
     exit;
 }
 
-// Validate type
+// Kiểm tra loại sản phẩm
 if (empty($type)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Product type cannot be empty.'
+        'message' => 'Loại sản phẩm không thể trống.'
     ]);
     http_response_code(400);
     exit;
 }
 
-// Validate price
+// Kiểm tra giá
 if ($price <= 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Price must be greater than 0.'
+        'message' => 'Giá phải lớn hơn 0.'
     ]);
     http_response_code(400);
     exit;
 }
 
-// Validate quantity
+// Kiểm tra số lượng
 if ($quantity < 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Quantity cannot be negative.'
+        'message' => 'Số lượng không thể là số âm.'
     ]);
     http_response_code(400);
     exit;
 }
 
-// Generate unique product ID
+// Tạo ID sản phẩm duy nhất
 $product_id = uniqid();
 
-// Insert new product
-$stmt = $conn->prepare("INSERT INTO products (id, name, description, type, price, quantity, status, discount, image_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("ssssdiisss", 
+// Chèn sản phẩm mới
+$stmt = $conn->prepare("INSERT INTO products (id, name, description, type, price, quantity, status, `lock`, discount, image_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$status_int = $status ? 1 : 0;
+$lock_int = $lock ? 1 : 0;
+$discount_val = $discount !== null ? $discount : 0;
+
+$stmt->bind_param("sssssdiisss", 
     $product_id, 
     $name, 
     $description, 
     $type,
     $price, 
     $quantity, 
-    $status, 
-    $discount, 
+    $status_int,
+    $lock_int,
+    $discount_val,
     $image_url, 
     $created_at
 );
 
 if ($stmt->execute()) {
-    // Fetch the newly created product
+    // Lấy sản phẩm mới được tạo
     $select_stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
     $select_stmt->bind_param("s", $product_id);
     $select_stmt->execute();
@@ -111,7 +116,7 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => true,
         'success' => true,
-        'message' => 'Product created successfully.',
+        'message' => 'Sản phẩm được tạo thành công.',
         'data' => $new_product
     ]);
     http_response_code(201);
@@ -119,7 +124,7 @@ if ($stmt->execute()) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Failed to create product: ' . $stmt->error
+        'message' => 'Không thể tạo sản phẩm: ' . $stmt->error
     ]);
     http_response_code(500);
 }

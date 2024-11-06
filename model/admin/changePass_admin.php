@@ -1,8 +1,6 @@
 <?php
-
-include_once __DIR__ . '/../../utils/helpers.php';
+ 
 include_once __DIR__ . '/../../config/db.php';
-setDefaultCorsHeaders();
 
 // Lấy API key từ headers
 $headers = apache_request_headers();
@@ -18,14 +16,14 @@ if (!$api_key) {
     exit;
 }
 
-// Kiểm tra API key và lấy thông tin user
-$stmt = $conn->prepare("SELECT id, password FROM users WHERE api_key = ?");
+// Kiểm tra API key và lấy thông tin admin
+$stmt = $conn->prepare("SELECT id, password FROM admin WHERE api_key = ?");
 $stmt->bind_param("s", $api_key);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    $user = $result->fetch_assoc();
+    $admin = $result->fetch_assoc();
     
     // Đọc dữ liệu PUT request
     $input = file_get_contents("php://input");
@@ -46,9 +44,9 @@ if ($result->num_rows > 0) {
     }
 
     // So sánh trực tiếp với mật khẩu đã lưu
-    if ($current_password == $user['password']) {
+    if ($current_password == $admin['password']) {
         // Cập nhật với mật khẩu mới
-        $update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE api_key = ?");
+        $update_stmt = $conn->prepare("UPDATE admin SET password = ? WHERE api_key = ?");
         $update_stmt->bind_param("ss", $new_password, $api_key);
 
         if ($update_stmt->execute()) {

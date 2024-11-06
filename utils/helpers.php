@@ -11,17 +11,17 @@ function generateRandomId($length = 24)
 
 function convertToWebUrl($url)
 {
-    // Check if URL is null or empty
+    // kiểm tra URL có null hoặc rỗng không
     if (empty($url)) {
         return null;
     }
 
-    // If URL already starts with http:// or https://, return as is
+    // nếu URL đã bắt đầu với http:// hoặc https://, trả về như vậy
     if (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0) {
         return $url;
     }
 
-    // Convert local path to web URL
+    // chuyển đổi đường dẫn local thành URL web
     $baseUrl = 'http://' . $_SERVER['HTTP_HOST'];
     return $baseUrl . '/' . ltrim($url, '/');
 }
@@ -40,32 +40,18 @@ function validateStatus($status)
     }
 }
 
-// function setCorsHeaders($allowed_methods = 'GET') {
-//     header('Access-Control-Allow-Origin: *');
-//     header('Content-Type: application/json');
-//     header('Access-Control-Allow-Methods: ' . $allowed_methods);
-//     header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
-// }
-
-// function setDefaultCorsHeaders() {
-//     header('Access-Control-Allow-Origin: *');
-//     header('Content-Type: application/json');
-//     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-//     header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
-// }
-
 function setDefaultCorsHeaders()
 {
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
 
-    // Thêm header để debug
+    // thêm header để debug
     header('Access-Control-Allow-Origin: *');
     header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS");
     header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method,Access-Control-Request-Headers, Authorization");
     header('Content-Type: application/json');
 
-    // Handle preflight requests
+    // xử lý yêu cầu preflight
     if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
         header("HTTP/1.1 200 OK");
         exit();
