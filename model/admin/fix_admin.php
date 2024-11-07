@@ -1,12 +1,6 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
 
-// Set headers
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method,Access-Control-Request-Headers, Authorization");
-header('Content-Type: application/json');
-
 
 // Lấy API key từ header
 $headers = apache_request_headers();
@@ -50,43 +44,43 @@ if ($result->num_rows > 0) {
         $types .= "s";
         $values[] = $data['username'];
     }
-    
+
     if (isset($data['email'])) {
         $updates[] = "email = ?";
         $types .= "s";
         $values[] = $data['email'];
     }
-    
+
     if (isset($data['password'])) {
         $updates[] = "password = ?";
         $types .= "s";
         $values[] = $data['password'];
     }
-    
+
     if (isset($data['order'])) {
         $updates[] = "`order` = ?";
         $types .= "i";
         $values[] = (int)$data['order'];
     }
-    
+
     if (isset($data['mess'])) {
         $updates[] = "mess = ?";
         $types .= "i";
         $values[] = (int)$data['mess'];
     }
-    
+
     if (isset($data['statistics'])) {
         $updates[] = "statistics = ?";
         $types .= "i";
         $values[] = (int)$data['statistics'];
     }
-    
+
     if (isset($data['user'])) {
         $updates[] = "user = ?";
         $types .= "i";
         $values[] = (int)$data['user'];
     }
-    
+
     if (isset($data['note'])) {
         $updates[] = "note = ?";
         $types .= "s";
@@ -124,17 +118,17 @@ if ($result->num_rows > 0) {
 
     // Thêm thời gian cập nhật
     $updates[] = "time = NOW()";
-    
+
     // Tạo câu truy vấn SQL
     $sql = "UPDATE admin SET " . implode(", ", $updates) . " WHERE id = ?";
-    
+
     // Thêm ID admin vào giá trị và kiểu
     $values[] = $admin_id;
     $types .= "s";
-    
+
     // Chuẩn bị và thực thi cập nhật
     $update_stmt = $conn->prepare($sql);
-    
+
     // Chuẩn bị và thực thi cập nhật
     $update_stmt->bind_param($types, ...$values);
 
@@ -144,7 +138,7 @@ if ($result->num_rows > 0) {
         $select_stmt->bind_param("s", $admin_id);
         $select_stmt->execute();
         $updated_admin = $select_stmt->get_result()->fetch_assoc();
-        
+
         echo json_encode([
             'ok' => true,
             'success' => true,
@@ -188,4 +182,3 @@ if ($result->num_rows > 0) {
 
 $stmt->close();
 $conn->close();
-?>

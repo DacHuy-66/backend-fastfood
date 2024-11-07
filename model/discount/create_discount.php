@@ -1,8 +1,4 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
 include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../model/Discount.php';
@@ -14,10 +10,15 @@ try {
     // Lấy dữ liệu được gửi đi
     $data = json_decode(file_get_contents("php://input"));
     
-    if (!$data || !isset($data->code) || !isset($data->description) || 
-        !isset($data->discount_percent) || !isset($data->valid_from) || 
-        !isset($data->valid_to)) {
+    if (!$data || !isset($data->code) || !isset($data->name) || 
+        !isset($data->discount_percent) || !isset($data->valid_from) || !isset($data->valid_to) ||
+        !isset($data->quantity) || !isset($data->minimum_price) || !isset($data->type)) {
         throw new Exception("Thiếu các trường bắt buộc", 400);
+    }
+    
+    // Kiểm tra mã code đã tồn tại chưa
+    if ($discount->isCodeExists($data->code)) {
+        throw new Exception("Mã giảm giá này đã tồn tại", 400);
     }
     
     // Kiểm tra tỷ lệ giảm giá
@@ -36,10 +37,15 @@ try {
     
     // Đặt các thuộc tính của discount
     $discount->code = $data->code;
-    $discount->description = $data->description;
+    $discount->name = $data->name;
+    $discount->description = $data->description ?? '';
     $discount->discount_percent = $data->discount_percent;
     $discount->valid_from = $data->valid_from;
     $discount->valid_to = $data->valid_to;
+    $discount->quantity = $data->quantity;
+    $discount->minimum_price = $data->minimum_price;
+    $discount->type = $data->type;
+    $discount->status = 1;
     
     if ($discount->create()) {
         $response = [
@@ -61,3 +67,4 @@ try {
     ];
     http_response_code($e->getCode() ?: 400);
 }
+echo json_encode($response, JSON_UNESCAPED_UNICODE);

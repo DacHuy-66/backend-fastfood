@@ -20,7 +20,7 @@ if (empty($product_id)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Invalid product ID format.'
+        'message' => 'ID không hợp lệ.'
     ]);
     http_response_code(400);
     exit;
@@ -36,7 +36,7 @@ if ($result->num_rows === 0) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Product not found.'
+        'message' => 'Sản phẩm không tồn tại.'
     ]);
     http_response_code(404);
     $check_stmt->close();
@@ -61,32 +61,24 @@ $order_check_stmt->execute();
 $order_result = $order_check_stmt->get_result()->fetch_assoc();
 $order_check_stmt->close();
 
-// Nếu có các bản ghi liên kết, không xóa mà đánh dấu là không hoạt động
-if ($review_result['review_count'] > 0 || $order_result['order_count'] > 0) {
-    $update_stmt = $conn->prepare("UPDATE products SET status = 0, updated_at = ? WHERE id = ?");
-    $current_time = date('Y-m-d H:i:s');
-    $update_stmt->bind_param("ss", $current_time, $product_id);
-    
-    if ($update_stmt->execute()) {
-        echo json_encode([
-            'ok' => true,
-            'success' => true,
-            'message' => 'Sản phẩm có các bản ghi liên kết và đã được đánh dấu là không hoạt động thay vì bị xóa.',
-            'data' => array_merge($product_data, ['status' => 0, 'updated_at' => $current_time])
-        ]);
-        http_response_code(200);
-    } else {
-        echo json_encode([
-            'ok' => false,
-            'success' => false,
-            'message' => 'Không thể cập nhật trạng thái sản phẩm: ' . $update_stmt->error
-        ]);
-        http_response_code(500);
-    }
-    $update_stmt->close();
-    $conn->close();
-    exit;
-}
+// Xóa các dữ liệu liên quan trước khi xóa sản phẩm
+$delete_reviews_query = "DELETE FROM reviews WHERE product_id = ?";
+$delete_reviews_stmt = $conn->prepare($delete_reviews_query);
+$delete_reviews_stmt->bind_param("s", $product_id);
+$delete_reviews_stmt->execute();
+$delete_reviews_stmt->close();
+
+$delete_order_items_query = "DELETE FROM order_items WHERE product_id = ?";
+$delete_order_items_stmt = $conn->prepare($delete_order_items_query);
+$delete_order_items_stmt->bind_param("s", $product_id);
+$delete_order_items_stmt->execute();
+$delete_order_items_stmt->close();
+
+$delete_cart_query = "DELETE FROM cart WHERE product_id = ?";
+$delete_cart_stmt = $conn->prepare($delete_cart_query);
+$delete_cart_stmt->bind_param("s", $product_id);
+$delete_cart_stmt->execute();
+$delete_cart_stmt->close();
 
 // Nếu không có các bản ghi liên kết, tiến hành xóa
 $delete_stmt = $conn->prepare("DELETE FROM products WHERE id = ?");

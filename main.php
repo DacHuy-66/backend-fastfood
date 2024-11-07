@@ -60,14 +60,12 @@ elseif (preg_match("/\/change\/password\$/", $request_uri)) {
     include './model/profile/changePass_user.php';
 }
 
-// create account
-// {
-//     "username": "example_user",
-//     "email": "user@example.com", 
-//     "password": "secure_password",
-//     "phone": "111111",  // optional
-//     "address": "HN"     // optional
-// }
+//  create account
+//  {
+//      "username": "example_user",
+//      "email": "user@example.com", 
+//      "password": "secure_password",
+//  }
 // url: http://localhost/WebDoAn/main.php/register
 elseif (strpos($request_uri, '/register') !== false) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -339,12 +337,40 @@ elseif (preg_match("/\/review\/(\w+)$/", $request_uri, $matches)) {
 }
 
 // discount route 
+
 // list_discount
 // create discount
+// {
+//     "code": "SUwwMsadas20",
+//     "name": "Summer",
+//     "discount_percent": 10,
+//     "quantity": 100,
+//     "minimum_price": 10,
+//     "type": "percent",
+//     "valid_from": "2024-06-21",
+//     "valid_to": "2024-06-22"
+// }
 // URL: http://localhost/WebDoAn/main.php/discount
 
-elseif (preg_match("/\/discount\$/", $request_uri)) {
+elseif (preg_match("/\/discount$/", $request_uri) || preg_match("/\/discount\?/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // Lấy tham số tìm kiếm từ query string
+        $page = isset($_GET['page']) ? filter_var($_GET['page'], FILTER_VALIDATE_INT, [
+            'options' => ['default' => 1, 'min_range' => 1]
+        ]) : 1;
+
+        $limit = isset($_GET['limit']) ? filter_var($_GET['limit'], FILTER_VALIDATE_INT, [
+            'options' => ['default' => 10, 'min_range' => 1, 'max_range' => 100]
+        ]) : 10;
+
+        // Lọc theo từ khóa tìm kiếm nếu có tham số search
+        $search = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+        // Đảm bảo các biến này có sẵn trong list_discount.php
+        $_GET['page'] = $page;
+        $_GET['limit'] = $limit; 
+        $_GET['q'] = $search;
+
         include './model/discount/list_discount.php';
     } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/discount/create_discount.php';
@@ -360,7 +386,18 @@ elseif (preg_match("/\/discount\$/", $request_uri)) {
 
 // delete discount
 // fix discount
-// URL: http://localhost/WebDoAn/main.php/discount/123
+// {
+//     "code": "alal2al",
+//     "name": "Summs22sser",
+//     "discount_percent": 10,
+//     "quantity": 10,
+//     "minimum_price": 20,
+//     "type": "percen2222t",
+//     "valid_from": "2024-06-21",
+//     "valid_to": "2024-06-29",
+//     "status": 0
+// }
+// URL: http://localhost/WebDoAn/main.php/discount/{id}
 elseif (preg_match("/\/discount\/(\w+)$/", $request_uri, $matches)) {
     $discount_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
@@ -378,20 +415,23 @@ elseif (preg_match("/\/discount\/(\w+)$/", $request_uri, $matches)) {
 }
 
 // discount_user
-//{
-//     "name": "Summer",
-//     "code": "SUM20",
-//     "description": "20% off",
-//     "minimum_price": 10,
-//     "type": "percent",
-//     "discount_percent": 0.2,
-//     "valid_from": "2024-06-22",
-//     "valid_to": "2024-06-22"
-// }
+
 // list discount user
 // url: http://localhost/WebDoAn/main.php/discount/user/{user_id}
 
 // fix discount user
+// {
+//     "email": "thuan33@gmail.com",
+//     "name": "Giảmsdasd è",
+//     "description": "Khuyến mãi ",
+//     "minimum_price": 20000,
+//     "code": "22ádas22220",
+//     "type": "cake",
+//     "discount_percent": 20,
+//     "valid_from": "2024-03-21",
+//     "valid_to": "2024-04-21",
+//     "status": 1
+// }
 // URL: http://localhost/WebDoAn/main.php/discount/user/{id}
 
 // delete discount user
@@ -404,7 +444,8 @@ elseif (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
         include './model/discount/list_discount_user.php';
     } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         include './model/discount/delete_discount_user.php';
-    } else {
+    }
+     else {
         echo json_encode([
             'ok' => false,
             'success' => false,
@@ -416,20 +457,26 @@ elseif (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
 
 // create discount user
 // {
-//     "name": "Summer",
-//     "user_id": "123",
-//     "code": "SUM20",
-//     "description": "20% off",
-//     "minimum_price": 10,
+//     "email": "thuan33@gmail.com",
+//     "name": "Giảm mùa hè",
+//     "minimum_price": 100000,
 //     "type": "percent",
-//     "discount_percent": 0.2,
-//     "valid_from": "2024-06-22",
-//     "valid_to": "2024-06-22"
+//     "discount_percent": 15,
+//     "valid_from": "2024-03-20",
+//     "valid_to": "2024-04-20"
 // }
-// URL: http://localhost/WebDoAn/main.php/discount/user
-elseif (preg_match("/\/discount\/user$/", $request_uri)) {
+// URL: http://localhost/WebDoAn/main.php/discount_user/create
+elseif (preg_match("/\/discount_user\/create$/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/discount/create_discount_user.php';
+    }
+}
+
+// discount_history
+// URL: http://localhost/WebDoAn/main.php/discount_history
+elseif (preg_match("/\/discount_history$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/discount/list_discount_history.php';
     }
 }
 
@@ -444,17 +491,17 @@ elseif (preg_match("/\/promotion(\?.*)?$/", $request_uri)) {
 }
 
 // delete promotion
-    // fix_promotion
-    // {
-    //     "title": "...",
-    //     "description": "...",
-    //     "discount_percent": 0.2,
-    //     "start_date": "...",
-    //     "end_date": "...",
-    //     "min_order_value": 10,
-    //     "max_discount": 100
-    // }
-    // URL: http://localhost/WebDoAn/main.php/promotion/123
+// fix_promotion
+// {
+//     "title": "...",
+//     "description": "...",
+//     "discount_percent": 0.2,
+//     "start_date": "...",
+//     "end_date": "...",
+//     "min_order_value": 10,
+//     "max_discount": 100
+// }
+// URL: http://localhost/WebDoAn/main.php/promotion/123
 elseif (preg_match("/\/promotion\/(\w+)$/", $request_uri, $matches)) {
     $promotion_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
@@ -485,9 +532,10 @@ elseif (preg_match("/\/promotion\/(\w+)$/", $request_uri, $matches)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/promotion/create_promotion.php';
     }
-} 
+}
 
 // user route
+
 // list_user
 // URL: http://localhost/WebDoAn/main.php/user
 elseif (preg_match("/\/user(\?.*)?$/", $request_uri)) {
@@ -517,9 +565,10 @@ elseif (preg_match("/\/user\/(\w+)$/", $request_uri, $matches)) {
     $user_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         include './model/user/delete_user.php';
-    }
-    elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         include './model/user/fix_user.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/user/detail_user.php';
     } else {
         echo json_encode([
             'ok' => false,
@@ -528,10 +577,7 @@ elseif (preg_match("/\/user\/(\w+)$/", $request_uri, $matches)) {
         ]);
         http_response_code(405);
     }
-}
-
-
-else {
+} else {
     echo json_encode([
         'ok' => false,
         'success' => false,

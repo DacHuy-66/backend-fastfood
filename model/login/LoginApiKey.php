@@ -18,7 +18,7 @@ if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
     
     // Kiểm tra role của user
-    if ($user['role'] == '0') {
+    if ($user['role'] == '1') {
         // Tạo API key
         $api_key = bin2hex(random_bytes(32));
 
@@ -31,8 +31,9 @@ if ($result->num_rows > 0) {
             echo json_encode([
                 'ok' => true,
                 'success' => true,
+                'status' => true,
                 'api_key' => $api_key,
-                'message' => 'API key được tạo thành công.'
+                'message' => 'Đăng nhập thành công!'
             ]);
         } else {
             echo json_encode([
@@ -42,12 +43,12 @@ if ($result->num_rows > 0) {
             ]);
         }
     } else {
-        // Trả về thông báo khi role không phải 0
+        // Trả về thông báo khi role không phải 1
         echo json_encode([
             'ok' => false,
-            'status' => 'block',
+            'status' => false,
             'success' => false,
-            'message' => 'Người dùng không có quyền tạo API key.'
+            'message' => 'Tài khoản đã bị xóa!'
         ]);
     }
 } else {

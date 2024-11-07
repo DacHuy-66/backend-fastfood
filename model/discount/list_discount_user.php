@@ -50,15 +50,17 @@ try {
             'name' => $row['name'],
             'user_id' => $row['user_id'],
             'username' => $row['username'],
+            'email' => $row['email'],
             'code' => $row['code'],
             'description' => $row['description'],
             'discount_percent' => (float)$row['discount_percent'],
             'valid_from' => $valid_from->format('Y-m-d'),
             'valid_to' => $valid_to->format('Y-m-d'),
-            'status' => $row['status'],
+            'status' => (bool)$row['status'],
+            'message' => $row['message'],
             'minimum_price' => (float)$row['minimum_price'],
             'type' => $row['type'],
-            'days_remaining' => $row['status'] === 'active' ? 
+            'days_remaining' => $row['message'] === 'active' ? 
                 (new DateTime())->diff($valid_to)->days : 0
         ];
         

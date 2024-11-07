@@ -1,8 +1,4 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
 include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../model/Discount.php';
@@ -11,13 +7,16 @@ include_once __DIR__ . '/../../utils/helpers.php';
 $discount = new Discount($conn);
 
 try {
+    // Thêm tham số tìm kiếm
+    $search = isset($_GET['q']) ? trim($_GET['q']) : '';
+    
     // Lấy các tham số phân trang
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
     
-    // Lấy kết quả
-    $result = $discount->read($page, $limit);
-    $total_discounts = $discount->getTotalCount();
+    // Lấy kết quả với tham số tìm kiếm
+    $result = $discount->read($page, $limit, $search);
+    $total_discounts = $discount->getTotalCount($search);
     
     if ($result->num_rows > 0) {
         $discounts_arr = [];
@@ -28,12 +27,20 @@ try {
             $valid_from = new DateTime($row['valid_from']);
             $valid_to = new DateTime($row['valid_to']);
             
-            if ($current_date < $valid_from) {
-                $status = 'pending';
-            } elseif ($current_date > $valid_to) {
-                $status = 'expired';
-            } else {
-                $status = 'active';
+            if ((int)$row['status'] === 0) {
+                $message = 'Tạm dừng';
+            } 
+            else {
+                if ($current_date < $valid_from) {
+                    $message = 'Chờ bắt đầu';
+                } elseif ($current_date > $valid_to) {
+                    $message = 'Hết hạn';
+                } else {
+                    $message = 'Đang hoạt động';
+                }
+                if ((int)$row['quantity'] === 0) {
+                    $message = 'Hết số lượng';
+                }
             }
             
             $discount_item = array(
@@ -41,14 +48,15 @@ try {
                 'code' => $row['code'],
                 'name' => $row['name'],
                 'description' => $row['description'],
-                'quantity' => $row['quantity'],
-                'minimum_price' => $row['minimum_price'],
+                'quantity' => (int)$row['quantity'],
+                'minimum_price' => (float)$row['minimum_price'],
                 'type' => $row['type'],
                 'discount_percent' => (int)$row['discount_percent'],
                 'valid_from' => $row['valid_from'],
                 'valid_to' => $row['valid_to'],
-                'status' => $status,
-                'days_remaining' => $status === 'active' ? $current_date->diff($valid_to)->days : 0
+                'status' => (bool)$row['status'],
+                'message' => $message,
+                'days_remaining' => $message === 'Đang hoạt động' ? $current_date->diff($valid_to)->days : 0
             );
             
             $discounts_arr[] = $discount_item;

@@ -1,9 +1,4 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
-
 include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../model/Discount_history.php';
 include_once __DIR__ . '/../../utils/helpers.php';
@@ -26,13 +21,12 @@ try {
         while ($row = $result->fetch_assoc()) {
             $history_item = array(
                 'id' => (int)$row['id'],
-                'user_id' => (int)$row['user_id'],
+                'user_id' => $row['user_id'],
                 'username' => $row['username'],
+                'email' => $row['email'],
                 'status' => $row['status'],
                 'datetime' => $row['datetime'],
                 'code' => $row['code'],
-                'discount_description' => $row['discount_description'],
-                'discount_percent' => (int)$row['discount_percent']
             );
             
             $history_arr[] = $history_item;

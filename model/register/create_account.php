@@ -87,9 +87,8 @@ $stmt->close();
 // tạo ID và API key duy nhất
 $user_id = uniqid();
 $api_key = bin2hex(random_bytes(32)); 
-$default_avata = 'https://tse4.mm.bing.net/th?id=OIP.Zmki3GIiRk-XKTzRRlxn4QHaER&pid=Api&P=0&h=220'; // đường dẫn mặc định cho avatar
-// vai trò mặc định là user (0)
-$role = '0';
+$default_avata = 'https://tse4.mm.bing.net/th?id=OIP.Zmki3GIiRk-XKTzRRlxn4QHaER&pid=Api&P=0&h=220';
+$role = '1';
 
 // chèn người dùng mới
 $stmt = $conn->prepare("INSERT INTO users (id, username, email, password, api_key, role, avata) VALUES (?, ?, ?, ?, ?, ?, ?)");

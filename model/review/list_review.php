@@ -1,8 +1,4 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
 include_once __DIR__ . '/../../config/db.php';
 
@@ -19,13 +15,14 @@ try {
 
     $offset = ($page - 1) * $limit;
 
-    $query = "SELECT r.*, u.username, u.avata
+    $query = "SELECT r.*, u.username, u.avata, p.name as product_name, p.image_url as product_image_url
               FROM reviews r
-              LEFT JOIN users u ON r.user_id = u.id 
+              LEFT JOIN users u ON r.user_id = u.id
+              LEFT JOIN products p ON r.product_id = p.id 
               WHERE 1=1 ";
 
     if ($search) {
-        $query .= "AND (r.comment LIKE ? OR u.username LIKE ?) ";
+        $query .= "AND (r.comment LIKE ? OR u.username LIKE ? OR p.name LIKE ?) ";
     }
 
     if ($product_id) {
@@ -43,13 +40,13 @@ try {
     if ($search) {
         $search_param = "%$search%";
         if ($product_id && $rating) {
-            $stmt->bind_param("ssiiii", $search_param, $search_param, $product_id, $rating, $limit, $offset);
+            $stmt->bind_param("sssiiii", $search_param, $search_param, $search_param, $product_id, $rating, $limit, $offset);
         } elseif ($product_id) {
-            $stmt->bind_param("ssiii", $search_param, $search_param, $product_id, $limit, $offset);
+            $stmt->bind_param("sssiii", $search_param, $search_param, $search_param, $product_id, $limit, $offset);
         } elseif ($rating) {
-            $stmt->bind_param("ssiii", $search_param, $search_param, $rating, $limit, $offset);
+            $stmt->bind_param("sssiii", $search_param, $search_param, $search_param, $rating, $limit, $offset);
         } else {
-            $stmt->bind_param("ssii", $search_param, $search_param, $limit, $offset);
+            $stmt->bind_param("sssii", $search_param, $search_param, $search_param, $limit, $offset);
         }
     } else {
         if ($product_id && $rating) {
@@ -71,9 +68,12 @@ try {
         $reviews_arr[] = $row;
     }
 
-    $count_query = "SELECT COUNT(*) as total FROM reviews r LEFT JOIN users u ON r.user_id = u.id WHERE 1=1";
+    $count_query = "SELECT COUNT(*) as total FROM reviews r 
+                    LEFT JOIN users u ON r.user_id = u.id
+                    LEFT JOIN products p ON r.product_id = p.id  
+                    WHERE 1=1";
     if ($search) {
-        $count_query .= " AND (r.comment LIKE ? OR u.username LIKE ?)";
+        $count_query .= " AND (r.comment LIKE ? OR u.username LIKE ? OR p.name LIKE ?)";
     }
     if ($product_id) {
         $count_query .= " AND r.product_id = ?";
@@ -86,13 +86,13 @@ try {
     if ($search) {
         $search_param = "%$search%";
         if ($product_id && $rating) {
-            $count_stmt->bind_param("ssii", $search_param, $search_param, $product_id, $rating);
+            $count_stmt->bind_param("sssii", $search_param, $search_param, $search_param, $product_id, $rating);
         } elseif ($product_id) {
-            $count_stmt->bind_param("ssi", $search_param, $search_param, $product_id);
+            $count_stmt->bind_param("sssi", $search_param, $search_param, $search_param, $product_id);
         } elseif ($rating) {
-            $count_stmt->bind_param("ssi", $search_param, $search_param, $rating);
+            $count_stmt->bind_param("sssi", $search_param, $search_param, $search_param, $rating);
         } else {
-            $count_stmt->bind_param("ss", $search_param, $search_param);
+            $count_stmt->bind_param("sss", $search_param, $search_param, $search_param);
         }
     } else {
         if ($product_id && $rating) {

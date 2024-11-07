@@ -1,44 +1,63 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: DELETE');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
-
 include_once __DIR__ . '/../../config/db.php';
-include_once __DIR__ . '/../../model/Discount.php';
-include_once __DIR__ . '/../../utils/helpers.php';
 
-$discount = new Discount($conn);
-
-try {
-    // Lấy dữ liệu
-    $data = json_decode(file_get_contents("php://input"));
-    
-    if (!$data || !isset($data->id)) {
-        throw new Exception("Thiếu ID discount", 400);
-    }
-    
-    $discount->id = $data->id;
-    
-    if ($discount->delete()) {
-        $response = [
-            'ok' => true,
-            'status' => 'success',
-            'message' => 'Discount được xóa thành công',
-            'code' => 200
-        ];
-        http_response_code(200);
-    } else {
-        throw new Exception("Không thể xóa discount đang được sử dụng", 400);
-    }
-} catch (Exception $e) {
-    $response = [
-        'ok' => false,
-        'status' => 'error',
-        'message' => $e->getMessage(),
-        'code' => $e->getCode() ?: 400
-    ];
-    http_response_code($e->getCode() ?: 400);
+// Handle preflight request
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    header("HTTP/1.1 200 OK");
+    exit();
 }
 
-echo json_encode($response, JSON_UNESCAPED_UNICODE);
+// Get ID from URL
+$request_uri = $_SERVER['REQUEST_URI'];
+$segments = explode('/', trim($request_uri, '/'));
+$id_discount = end($segments);
+
+// Check if discount ID is provided
+if (empty($id_discount)) {
+    echo json_encode([
+        'ok' => false,
+        'success' => false,
+        'message' => 'ID discount không được cung cấp!'
+    ]);
+    http_response_code(400);
+    exit;
+}
+
+// Check discount ID
+$stmt = $conn->prepare("SELECT id FROM discounts WHERE id = ?");
+$stmt->bind_param("i", $id_discount);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    // Discount exists, proceed to delete
+    $delete_stmt = $conn->prepare("DELETE FROM discounts WHERE id = ?");
+    $delete_stmt->bind_param("i", $id_discount);
+
+    if ($delete_stmt->execute()) {
+        echo json_encode([
+            'ok' => true,
+            'success' => true,
+            'message' => 'Xóa thành công!'
+        ]);
+        http_response_code(200);
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Xóa không thành công: ' . $delete_stmt->error
+        ]);
+        http_response_code(500);
+    }
+    $delete_stmt->close();
+} else {
+    echo json_encode([
+        'ok' => false,
+        'success' => false,
+        'message' => 'Không tìm thấy Discount ID!'
+    ]);
+    http_response_code(404);
+}
+
+$stmt->close();
+$conn->close();
