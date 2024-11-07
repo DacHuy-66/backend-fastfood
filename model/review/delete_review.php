@@ -9,7 +9,7 @@ include_once __DIR__ . '/../../config/db.php';
 try {
     // Lấy ID từ URL
     $url_parts = explode('/', $_SERVER['REQUEST_URI']);
-    $review_id = end($url_parts);  // Lấy phần tử cuối cùng của URL
+    $review_id = end($url_parts);  
     
     // Kiểm tra ID có hợp lệ không
     if (!filter_var($review_id, FILTER_VALIDATE_INT)) {

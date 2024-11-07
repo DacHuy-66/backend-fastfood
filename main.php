@@ -437,7 +437,7 @@ elseif (preg_match("/\/discount\/user$/", $request_uri)) {
 
 // list_promotion
 // URL: http://localhost/WebDoAn/main.php/promotion
-elseif (preg_match("/\/promotion\?/", $request_uri)) {
+elseif (preg_match("/\/promotion(\?.*)?$/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         include './model/promotion/list_promotion.php';
     }
@@ -485,11 +485,57 @@ elseif (preg_match("/\/promotion\/(\w+)$/", $request_uri, $matches)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/promotion/create_promotion.php';
     }
-} else {
+} 
+
+// user route
+// list_user
+// URL: http://localhost/WebDoAn/main.php/user
+elseif (preg_match("/\/user(\?.*)?$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/user/list_user.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// delete user
+// fix user
+// {
+//     "username": "aaaaaa",
+//     "email": "aaaa",
+//     "password": "aaaaa",
+//     "role": 1,
+//     "avata": "aaaaaaa"
+// }
+// URL: http://localhost/WebDoAn/main.php/user/123
+elseif (preg_match("/\/user\/(\w+)$/", $request_uri, $matches)) {
+    $user_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        include './model/user/delete_user.php';
+    }
+    elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        include './model/user/fix_user.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use DELETE request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+
+else {
     echo json_encode([
         'ok' => false,
         'success' => false,
         'message' => 'URL not found'
     ]);
-    http_response_code(response_code: 404);
+    http_response_code(404);
 }
