@@ -3,7 +3,6 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Thêm header để debug
 header('Access-Control-Allow-Origin: *');
 header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method,Access-Control-Request-Headers, Authorization");
@@ -417,8 +416,26 @@ elseif (preg_match("/\/discount\/(\w+)$/", $request_uri, $matches)) {
 // discount_user
 
 // list discount user
-// url: http://localhost/WebDoAn/main.php/discount/user/{user_id}
+// url: http://localhost/WebDoAn/main.php/discount/user/delete/{user_id}
 
+// delete discount user
+// URL: http://localhost/WebDoAn/main.php/discount/user/delete/{id}
+elseif (preg_match("/\/discount\/user\/delete\/(\w+)$/", $request_uri, $matches)) {
+    $product_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        include './model/discount/delete_discount_user.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/discount/list_discount_user.php';
+    }
+     else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use PUT, or DELETE request.'
+        ]);
+        http_response_code(405);
+    }
+}
 // fix discount user
 // {
 //     "email": "thuan33@gmail.com",
@@ -432,24 +449,16 @@ elseif (preg_match("/\/discount\/(\w+)$/", $request_uri, $matches)) {
 //     "valid_to": "2024-04-21",
 //     "status": 1
 // }
-// URL: http://localhost/WebDoAn/main.php/discount/user/{id}
-
-// delete discount user
-// URL: http://localhost/WebDoAn/main.php/discount/user/{id}
-elseif (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
-    $product_id = $matches[1];
+// URL: http://localhost/WebDoAn/main.php/discount/user/fix/{id}
+elseif (preg_match("/\/discount\/user\/fix\/(\w+)$/", $request_uri, $matches)) {
+    $discount_user_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         include './model/discount/fix_discount_user.php';
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        include './model/discount/list_discount_user.php';
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        include './model/discount/delete_discount_user.php';
-    }
-     else {
+    }else {
         echo json_encode([
             'ok' => false,
             'success' => false,
-            'message' => 'Method not allowed. Use PUT, or DELETE request.'
+            'message' => 'Method not allowed. Use PUT request.'
         ]);
         http_response_code(405);
     }
@@ -472,9 +481,17 @@ elseif (preg_match("/\/discount_user\/create$/", $request_uri)) {
     }
 }
 
+// list all discount user
+// url: http://localhost/WebDoAn/main.php/discount_user/all
+elseif (preg_match("/\/discount_user\/all$/", $request_uri) || preg_match("/\/discount_user\/all\?/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/discount/ListAll_discount_user.php';
+    }
+}
+
 // discount_history
 // URL: http://localhost/WebDoAn/main.php/discount_history
-elseif (preg_match("/\/discount_history$/", $request_uri)) {
+elseif (preg_match("/\/discount_history$/", $request_uri) || preg_match("/\/discount_history\?/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         include './model/discount/list_discount_history.php';
     }
@@ -577,7 +594,49 @@ elseif (preg_match("/\/user\/(\w+)$/", $request_uri, $matches)) {
         ]);
         http_response_code(405);
     }
-} else {
+} 
+
+// cart route
+
+// list cart
+// URL: http://localhost/WebDoAn/main.php/cart
+elseif (preg_match("/\/cart(\?.*)?$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/cart/list_cart.php';
+    }
+}
+
+// create cart
+// URL: http://localhost/WebDoAn/main.php/cart/create
+// {
+//     "api_key": "144a13d3af38855ce0fbaa60a5945e415fe8c01802ca61cc0a9bf8bf4257aa0f",
+//     "product_id": "672b7e2f4e006",
+//     "quantity": 10
+// }
+elseif (preg_match("/\/cart\/create$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include './model/cart/create_cart.php';
+    }
+}
+// delete cart
+// URL: http://localhost/WebDoAn/main.php/cart/delete/id
+// {
+//     "delete_type": "reduce",
+//     "quantity": 2
+// }
+elseif (preg_match("/\/cart\/delete\/(\w+)$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        include './model/cart/delete_cart.php';
+    }else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use DELETE request.'
+        ]);
+        http_response_code(405);
+    }
+}
+else {
     echo json_encode([
         'ok' => false,
         'success' => false,

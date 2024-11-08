@@ -1,5 +1,4 @@
 <?php
-// Include database connection configuration
 include_once __DIR__ . '/../../config/db.php';
 
 // Nhận dữ liệu từ client
@@ -29,6 +28,7 @@ $statistics = isset($data['statistics']) ? (int)$data['statistics'] : 0;
 $user = isset($data['user']) ? (int)$data['user'] : 0;
 $product = isset($data['product']) ? (int)$data['product'] : 0;
 $discount = isset($data['discount']) ? (int)$data['discount'] : 0;
+$review = isset($data['review']) ? (int)$data['review'] : 0;
 $layout = isset($data['layout']) ? (int)$data['layout'] : 0;
 $decentralization = isset($data['decentralization']) ? (int)$data['decentralization'] : 0;
 $note = isset($data['note']) ? $data['note'] : '';
@@ -57,10 +57,10 @@ $api_key = bin2hex(random_bytes(32));
 $id = bin2hex(random_bytes(6)); 
 
 // Thêm admin mới
-$sql = "INSERT INTO admin (id, username, email, password, `order`, mess, `statistics`, `user`, product, discount, layout, decentralization, note, api_key, time) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+$sql = "INSERT INTO admin (id, username, email, password, `order`, mess, `statistics`, `user`, product, discount, review, layout, decentralization, note, api_key, time) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssiiiiiiiiss", 
+$stmt->bind_param("ssssiiiiiiiiiss", 
     $id,     
     $username, 
     $email, 
@@ -71,6 +71,7 @@ $stmt->bind_param("ssssiiiiiiiiss",
     $user, 
     $product, 
     $discount, 
+    $review, 
     $layout, 
     $decentralization, 
     $note, 
@@ -93,6 +94,7 @@ if ($stmt->execute()) {
                 'user' => (bool)$user,
                 'product' => (bool)$product,
                 'discount' => (bool)$discount,
+                'review' => (bool)$review,
                 'layout' => (bool)$layout,
                 'decentralization' => (bool)$decentralization
             ],

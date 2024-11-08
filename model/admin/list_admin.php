@@ -1,16 +1,11 @@
 <?php
 
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
-
 include_once __DIR__ . '/../../config/db.php';
 
 try {
     // Khởi tạo tham số phân trang
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-    $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 20;
+    $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 100;
     $offset = ($page - 1) * $limit;
 
     // Khởi tạo tham số sắp xếp và tìm kiếm
@@ -19,7 +14,7 @@ try {
     $sort_order = isset($_GET['sort_order']) && strtoupper($_GET['sort_order']) === 'ASC' ? 'ASC' : 'DESC';
 
     // Chuẩn bị câu truy vấn SQL
-    $sql = "SELECT id, username, email, password, `order`, mess, statistics, user, product, discount, layout, decentralization, note, time 
+    $sql = "SELECT id, username, email, password, `order`, mess, statistics, user, product, discount, review, layout, decentralization, note, time 
            FROM admin 
            WHERE (username LIKE ? OR email LIKE ?) 
            AND id != 'highest'
@@ -43,6 +38,7 @@ try {
         $row['user'] = (bool)$row['user'];
         $row['product'] = (bool)$row['product'];
         $row['discount'] = (bool)$row['discount'];
+        $row['review'] = (bool)$row['review'];
         $row['layout'] = (bool)$row['layout'];
         $row['decentralization'] = (bool)$row['decentralization'];
         $admins_arr[] = $row;

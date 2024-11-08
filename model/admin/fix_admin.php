@@ -96,6 +96,11 @@ if ($result->num_rows > 0) {
         $types .= "i";
         $values[] = (int)$data['discount'];
     }
+    if (isset($data['review'])) {
+        $updates[] = "review = ?";
+        $types .= "i";
+        $values[] = (int)$data['review'];
+    }
     if (isset($data['layout'])) {
         $updates[] = "layout = ?";
         $types .= "i";
@@ -134,7 +139,7 @@ if ($result->num_rows > 0) {
 
     if ($update_stmt->execute()) {
         // Lấy dữ liệu admin đã cập nhật
-        $select_stmt = $conn->prepare("SELECT id, username, email, 'order', mess, 'statistics', user, product, discount, layout, decentralization, note, time FROM admin WHERE id = ?");
+        $select_stmt = $conn->prepare("SELECT id, username, email, 'order', mess, 'statistics', user, product, discount, review, layout, decentralization, note, time FROM admin WHERE id = ?");
         $select_stmt->bind_param("s", $admin_id);
         $select_stmt->execute();
         $updated_admin = $select_stmt->get_result()->fetch_assoc();
@@ -154,6 +159,7 @@ if ($result->num_rows > 0) {
                     'user' => (bool)$updated_admin['user'],
                     'product' => (bool)$updated_admin['product'],
                     'discount' => (bool)$updated_admin['discount'],
+                    'review' => (bool)$updated_admin['review'],
                     'layout' => (bool)$updated_admin['layout'],
                     'decentralization' => (bool)$updated_admin['decentralization']
                 ],

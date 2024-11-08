@@ -29,7 +29,7 @@ if (!$api_key) {
 }
 
 // Kiểm tra API key và lấy quyền
-$stmt = $conn->prepare("SELECT username, email, `order`, mess, statistics, user, product, discount, layout, decentralization FROM admin WHERE api_key = ?");
+$stmt = $conn->prepare("SELECT username, email, `order`, mess, statistics, user, product, discount, review, layout, decentralization FROM admin WHERE api_key = ?");
 $stmt->bind_param("s", $api_key);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -46,6 +46,7 @@ if ($result->num_rows > 0) {
         'user' => (bool)$admin_data['user'],
         'product' => (bool)$admin_data['product'],
         'discount' => (bool)$admin_data['discount'],
+        'review' => (bool)$admin_data['review'],
         'layout' => (bool)$admin_data['layout'],
         'decentralization' => (bool)$admin_data['decentralization']
     ];

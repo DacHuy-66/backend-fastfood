@@ -43,10 +43,14 @@ try {
     $discount->discount_percent = $data->discount_percent ?? 0;
     $discount->valid_from = $data->valid_from;
     $discount->valid_to = $data->valid_to;
-    $discount->status = 1;
+    $discount->status = $data->status ?? 1;
 
-    // Tạo mã duy nhất nếu không được cung cấp
-    $discount->code = $data->code ?? $discount->generateUniqueCode();
+    // Tạo mã duy nhất nếu không được cung cấp hoặc rỗng
+    if (empty($data->code)) {
+        $discount->code = $discount->generateUniqueCode();
+    } else {
+        $discount->code = $data->code;
+    }
 
     // Kiểm tra xem mã đã tồn tại hay chưa
     if ($discount->isCodeExists($discount->code)) {

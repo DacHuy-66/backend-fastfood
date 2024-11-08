@@ -39,12 +39,13 @@ if (strpos($request_uri, '/admin/login') !== false) {
 //     "statistics": 0,
 //     "user": 0,
 //     "product": 0,
+//     "review": 0,
 //     "discount": 1,
 //     "layout": 1,
 //     "decentralization": 0,
 //     "note": "sdasdas"
 // }
-// url http://localhost/WebDoAn/main_admin.php/Decentralization/update
+// url http://localhost/WebDoAn/main_admin.php/Decentralization/create
 elseif (strpos($request_uri, '/Decentralization/create') !== false) {
     include './model/admin/create_admin.php';
 }
@@ -62,11 +63,12 @@ elseif (strpos($request_uri, '/Decentralization/create') !== false) {
 //     "user": 0,
 //     "product": 0,
 //     "discount": 1,
+//     "review": 0,
 //     "layout": 1,
 //     "decentralization": 0,
 //     "note": "sdasdas"
 // }
-// url http://localhost/WebDoAn/main_admin.php/Decentralization/create
+// url http://localhost/WebDoAn/main_admin.php/Decentralization/update/id
 elseif (preg_match("/\/Decentralization\/update\/(\w+)\$/", $request_uri, $matches)) {
     $admin_id = $matches[1];
     include './model/admin/fix_admin.php';
