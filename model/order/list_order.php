@@ -1,8 +1,4 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
 include_once __DIR__ . '/../../config/db.php';
 
@@ -19,11 +15,10 @@ try {
 
     $offset = ($page - 1) * $limit;
 
-    $query = "SELECT o.*, u.username, u.email, 
-              p.payment_method, p.payment_status, p.payment_date
+    $query = "SELECT o.id, o.created_at, o.status, u.username, 
+              o.quantity, o.total_price
               FROM orders o
               LEFT JOIN users u ON o.user_id = u.id
-              LEFT JOIN payments p ON o.id = p.order_id
               WHERE 1=1 ";
 
     if ($search) {
@@ -70,23 +65,13 @@ try {
     $orders_arr = [];
 
     while ($row = $result->fetch_assoc()) {
-        // Get order items for each order
-        $items_query = "SELECT oi.*, p.name as product_name, p.image_url 
-                       FROM order_items oi
-                       LEFT JOIN products p ON oi.product_id = p.id
-                       WHERE oi.order_id = ?";
-        $items_stmt = $conn->prepare($items_query);
-        $items_stmt->bind_param("i", $row['id']);
-        $items_stmt->execute();
-        $items_result = $items_stmt->get_result();
-        
-        $order_items = [];
-        while ($item = $items_result->fetch_assoc()) {
-            $order_items[] = $item;
-        }
-        
-        $row['items'] = $order_items;
-        $orders_arr[] = $row;
+        $orders_arr[] = [
+            'id' => $row['id'],
+            'username' => $row['username'],
+            'created_at' => $row['created_at'],
+            'status' => $row['status'],
+            'total_price' => $row['total_price']
+        ];
     }
 
     $count_query = "SELECT COUNT(*) as total FROM orders o 
@@ -128,6 +113,7 @@ try {
     $total_orders = $count_stmt->get_result()->fetch_assoc()['total'];
 
     $response = [
+        'ok' => true,
         'status' => 'success',
         'message' => 'Lấy danh sách đơn hàng thành công',
         'code' => 200,
@@ -145,6 +131,8 @@ try {
     http_response_code(200);
 } catch (Exception $e) {
     $response = [
+        'ok' => false,
+        'success' => false,
         'code' => $e->getCode() ?: 400,
         'status_code' => 'FAILED',
         'message' => $e->getMessage()

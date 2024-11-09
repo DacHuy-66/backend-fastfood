@@ -3,12 +3,10 @@
 include_once __DIR__ . '/../../config/db.php';
 
 try {
-    // Get JSON input
     $data = json_decode(file_get_contents('php://input'), true);
     
-    // Validate required fields
     if (!isset($data['cart_id'])) {
-        throw new Exception('Missing required field: cart_id', 400);
+        throw new Exception('Thiếu trường bắt buộc: cart_id', 400);
     }
 
     $cart_id = intval($data['cart_id']);
@@ -26,20 +24,20 @@ try {
     $cart_result = $check_stmt->get_result();
 
     if ($cart_result->num_rows === 0) {
-        throw new Exception('Cart item not found', 404);
+        throw new Exception('Không tìm thấy sản phẩm trong giỏ hàng', 404);
     }
 
     $cart_item = $cart_result->fetch_assoc();
 
-    // Build update SQL based on provided fields
+    // Xây dựng câu truy vấn update
     $updates = [];
     $types = "";
     $params = [];
 
     if ($quantity !== null) {
-        // Check if requested quantity is available in stock
+        // Kiểm tra nếu số lượng yêu cầu có sẵn trong kho
         if ($quantity > $cart_item['stock']) {
-            throw new Exception('Requested quantity exceeds available stock', 400);
+            throw new Exception('Số lượng yêu cầu vượt quá số lượng có sẵn', 400);
         }
         $updates[] = "quantity = ?";
         $types .= "i";
@@ -53,18 +51,17 @@ try {
     }
 
     if (empty($updates)) {
-        throw new Exception('No fields to update', 400);
+        throw new Exception('Không có trường nào để cập nhật', 400);
     }
 
-    // Add cart_id to params
+    // Thêm cart_id vào params
     $types .= "i";
     $params[] = $cart_id;
 
-    // Prepare and execute update
+    // Chuẩn bị và thực thi update
     $update_sql = "UPDATE cart SET " . implode(", ", $updates) . " WHERE id = ?";
     $update_stmt = $conn->prepare($update_sql);
 
-    // Dynamically bind parameters
     $bind_params = array_merge([$types], $params);
     $tmp = [];
     foreach ($bind_params as $key => $value) {
@@ -75,10 +72,10 @@ try {
     $update_stmt->execute();
 
     if ($update_stmt->affected_rows === 0) {
-        throw new Exception('No changes made to cart item', 400);
+        throw new Exception('Không có thay đổi nào trong giỏ hàng', 400);
     }
 
-    // Get updated cart item
+    // Lấy thông tin cart item đã cập nhật
     $get_sql = "SELECT c.*, p.name as product_name, p.price 
                 FROM cart c
                 LEFT JOIN products p ON c.product_id = p.id 
@@ -88,11 +85,11 @@ try {
     $get_stmt->execute();
     $updated_item = $get_stmt->get_result()->fetch_assoc();
 
-    // Prepare success response
+    // Chuẩn bị response thành công
     $response = [
         'ok' => true,
         'status' => 'success',
-        'message' => 'Cart item updated successfully',
+        'message' => 'Cập nhật giỏ hàng thành công',
         'code' => 200,
         'data' => [
             'cart_item' => [
@@ -116,7 +113,7 @@ try {
     ];
     http_response_code($e->getCode() ?: 400);
 } finally {
-    // Close all prepared statements
+    // Đóng tất cả các prepared statements
     if (isset($check_stmt)) $check_stmt->close();
     if (isset($update_stmt)) $update_stmt->close();
     if (isset($get_stmt)) $get_stmt->close();

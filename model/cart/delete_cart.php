@@ -17,7 +17,7 @@ try {
 
     // Lấy các tham số từ request body
     $delete_type = isset($data['delete_type']) ? trim($data['delete_type']) : 'all';
-    $quantity = isset($data['quantity']) ? max(1, intval($data['quantity'])) : 1;
+    $quantity = 1; // Mặc định quantity là 1 khi delete_type là reduce
 
     // kiểm tra sản phẩm có tồn tại trong giỏ hàng hay không
     $check_sql = "SELECT id, quantity FROM cart WHERE id = ? LIMIT 1";

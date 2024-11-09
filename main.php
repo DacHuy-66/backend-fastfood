@@ -87,7 +87,7 @@ elseif (preg_match("/\/address\$/", $request_uri)) {
     include './model/profile/address_user.php';
 }
 // detail address
-// url http://localhost/WebDoAn/main.php/address/...
+// url http://localhost/WebDoAn/main.php/address/user_id
 elseif (preg_match("/\/address\/(\w+)$/", $request_uri, $matches)) {
     $user_id = $matches[1];
     $_GET['id'] = $user_id;
@@ -367,7 +367,7 @@ elseif (preg_match("/\/discount$/", $request_uri) || preg_match("/\/discount\?/"
 
         // Đảm bảo các biến này có sẵn trong list_discount.php
         $_GET['page'] = $page;
-        $_GET['limit'] = $limit; 
+        $_GET['limit'] = $limit;
         $_GET['q'] = $search;
 
         include './model/discount/list_discount.php';
@@ -426,8 +426,7 @@ elseif (preg_match("/\/discount\/user\/delete\/(\w+)$/", $request_uri, $matches)
         include './model/discount/delete_discount_user.php';
     } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
         include './model/discount/list_discount_user.php';
-    }
-     else {
+    } else {
         echo json_encode([
             'ok' => false,
             'success' => false,
@@ -454,7 +453,7 @@ elseif (preg_match("/\/discount\/user\/fix\/(\w+)$/", $request_uri, $matches)) {
     $discount_user_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         include './model/discount/fix_discount_user.php';
-    }else {
+    } else {
         echo json_encode([
             'ok' => false,
             'success' => false,
@@ -594,7 +593,7 @@ elseif (preg_match("/\/user\/(\w+)$/", $request_uri, $matches)) {
         ]);
         http_response_code(405);
     }
-} 
+}
 
 // cart route
 
@@ -616,6 +615,13 @@ elseif (preg_match("/\/cart(\?.*)?$/", $request_uri)) {
 elseif (preg_match("/\/cart\/create$/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/cart/create_cart.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use POST request.'
+        ]);
+        http_response_code(405);
     }
 }
 // delete cart
@@ -627,7 +633,7 @@ elseif (preg_match("/\/cart\/create$/", $request_uri)) {
 elseif (preg_match("/\/cart\/delete\/(\w+)$/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         include './model/cart/delete_cart.php';
-    }else {
+    } else {
         echo json_encode([
             'ok' => false,
             'success' => false,
@@ -636,7 +642,49 @@ elseif (preg_match("/\/cart\/delete\/(\w+)$/", $request_uri)) {
         http_response_code(405);
     }
 }
-else {
+
+// order route
+
+// list order
+// URL: http://localhost/WebDoAn/main.php/order
+elseif (preg_match("/\/order(\?.*)?$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/order/list_order.php';
+    }
+}
+
+// detail order
+// URL: http://localhost/WebDoAn/main.php/order_detail/order_id
+elseif (preg_match("/\/order_detail\/(\w+)$/", $request_uri, $matches)) {
+    $order_id = $matches[1];
+    $_GET['id'] = $order_id;
+    include './model/order/detail_order.php';
+}
+
+//create order
+// {
+//     "user_id": "672f0ed7ad5ce",
+//     "address_id": "54",
+//     "products": [
+//         {
+//             "product_id": "P020",
+//             "quantity": 2
+//         },
+//         {
+//             "product_id": "P021",
+//             "quantity": 1
+//         }
+//     ],
+//     "payment_method": "COD",
+//     "note": "Giao hàng giờ hành chính",     // tùy chọn
+//     "discount_code": "SALE10"               // tùy chọn
+// }
+// URL: http://localhost/WebDoAn/main.php/order/create
+elseif (preg_match("/\/order\/create$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include './model/order/create_order.php';
+    }
+} else {
     echo json_encode([
         'ok' => false,
         'success' => false,
