@@ -1,8 +1,4 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
 include_once __DIR__ . '/../../config/db.php';
 
@@ -17,7 +13,7 @@ try {
     }
 
     // Query lấy thông tin đơn hàng và khách hàng
-    $order_sql = "SELECT o.*, u.username, da.phone, da.address, da.note
+    $order_sql = "SELECT o.*, u.username, da.phone, da.address
                   FROM orders o
                   LEFT JOIN users u ON o.user_id = u.id
                   LEFT JOIN detail_address da ON o.address_id = da.id

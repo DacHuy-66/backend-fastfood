@@ -2,7 +2,7 @@
 
 include_once __DIR__ . '/../../utils/helpers.php';
 include_once __DIR__ . '/../../config/db.php';
-setDefaultCorsHeaders();
+Headers();
 
 // Lấy API key từ headers
 $headers = apache_request_headers();

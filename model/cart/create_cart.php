@@ -83,10 +83,18 @@ try {
             throw new Exception('Số lượng sản phẩm trong kho không đủ', 400);
         }
         
+        // Cập nhật số lượng trong giỏ hàng
         $update_sql = "UPDATE cart SET quantity = ? WHERE id = ?";
         $update_stmt = $conn->prepare($update_sql);
         $update_stmt->bind_param("ii", $new_quantity, $cart_item['id']);
         $update_stmt->execute();
+
+        // Cập nhật số lượng sản phẩm trong kho
+        $new_stock = $product['quantity'] - $quantity;
+        $update_stock_sql = "UPDATE products SET quantity = ? WHERE id = ?";
+        $update_stock_stmt = $conn->prepare($update_stock_sql);
+        $update_stock_stmt->bind_param("is", $new_stock, $product_id);
+        $update_stock_stmt->execute();
     } else {
         // Kiểm tra tổng số sản phẩm trong giỏ hàng của user khi thêm mới
         $total_products_sql = "SELECT COUNT(*) as total FROM cart WHERE user_id = ?";
@@ -104,6 +112,13 @@ try {
         $insert_stmt = $conn->prepare($insert_sql);
         $insert_stmt->bind_param("ssi", $user_id, $product_id, $quantity);
         $insert_stmt->execute();
+
+        // Cập nhật số lượng sản phẩm trong kho
+        $new_stock = $product['quantity'] - $quantity;
+        $update_stock_sql = "UPDATE products SET quantity = ? WHERE id = ?";
+        $update_stock_stmt = $conn->prepare($update_stock_sql);
+        $update_stock_stmt->bind_param("is", $new_stock, $product_id);
+        $update_stock_stmt->execute();
     }
 
     // chuẩn bị response thành công
@@ -137,6 +152,7 @@ try {
     if (isset($update_stmt)) $update_stmt->close();
     if (isset($insert_stmt)) $insert_stmt->close();
     if (isset($total_products_stmt)) $total_products_stmt->close();
+    if (isset($update_stock_stmt)) $update_stock_stmt->close();
     $conn->close();
 }
 

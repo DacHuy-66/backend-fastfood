@@ -39,35 +39,30 @@ try {
         }
         
         $product_info = $product_result->fetch_assoc();
-        $subtotal = $product_info['price'] * $product['quantity'];
         
         $product_details[] = [
             'product_id' => $product_info['id'],
             'name' => $product_info['name'],
             'price' => $product_info['price'],
-            'quantity' => $product['quantity'],
-            'subtotal' => $subtotal
+            'quantity' => $product['quantity']
         ];
     }
 
     // Thay thế phần tạo UUID bằng ID ngắn hơn
     $order_id = substr(uniqid(), 0, 8);
     
-    // Tính tổng số lượng và giá trị đơn hàng
+    // Tính tổng số lượng
     $total_quantity = array_sum(array_column($product_details, 'quantity'));
-    $subtotal = array_sum(array_map(function($item) {
-        return $item['price'] * $item['quantity'];
-    }, $product_details));
     
-    // Tính total_price (có thể áp dụng giảm giá nếu có)
     $discount_code = $data['discount_code'] ?? null;
-    $total_price = $subtotal; // Tạm thời giữ nguyên, có thể thêm logic giảm giá sau
     
     // Tạo một đơn hàng duy nhất
     $order_sql = "INSERT INTO orders (id, user_id, address_id, quantity, status, note, discount_code, total_price, subtotal, created_at, updated_at) 
                 VALUES (?, ?, ?, ?, 'Chờ xác nhận', ?, ?, ?, ?, NOW(), NOW())";
     $order_stmt = $conn->prepare($order_sql);
     $note = $data['note'] ?? null;
+    $total_price = $data['total_price'];
+    $subtotal = $data['subtotal'];
     $order_stmt->bind_param("ssiissdd", 
         $order_id,
         $data['user_id'],
@@ -102,12 +97,20 @@ try {
     $payment_stmt->bind_param("ss", $order_id, $payment_method);
     $payment_stmt->execute();
 
+    // Thêm xóa sản phẩm khỏi giỏ hàng sau khi tạo đơn hàng thành công
+    foreach ($data['products'] as $product) {
+        $delete_cart_sql = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
+        $delete_cart_stmt = $conn->prepare($delete_cart_sql);
+        $delete_cart_stmt->bind_param("ss", $data['user_id'], $product['product_id']);
+        $delete_cart_stmt->execute();
+    }
+
     // Commit transaction
     $conn->commit();
 
     // Lấy thông tin đơn hàng vừa tạo
     $order_detail_sql = "SELECT o.*, u.username, p.name as product_name, po.price,
-                        da.phone, da.address, da.note
+                        da.phone, da.address
                         FROM orders o
                         LEFT JOIN users u ON o.user_id = u.id
                         LEFT JOIN product_order po ON o.id = po.order_id
@@ -142,7 +145,8 @@ try {
             'product_name' => $row['product_name'],
             'quantity' => $row['quantity'],
             'price' => $row['price'],
-            'subtotal' => $row['quantity'] * $row['price']
+            'total_price' => $row['price'],
+            'subtotal' => $row['subtotal']
         ];
     }
 
@@ -161,8 +165,6 @@ try {
             'orders' => $orders,
             'status' => 'Chờ xác nhận',
             'payment_method' => $payment_method,
-            'subtotal' => $subtotal,
-            'total_price' => $total_price,
             'discount_code' => $discount_code,
             'note' => $note
         ]

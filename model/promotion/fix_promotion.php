@@ -2,7 +2,7 @@
 include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../utils/helpers.php';
 include_once __DIR__ . '/../../model/Promotion.php';
-setDefaultCorsHeaders();
+Headers();
 
 $promotion = new Promotion($conn);
 

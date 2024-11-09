@@ -1,27 +1,24 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
 
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
+// Lấy order_id từ URL
+$request_uri = $_SERVER['REQUEST_URI'];
+$path_parts = explode('/', $request_uri);
+$order_id = end($path_parts); // Lấy phần tử cuối cùng của URL
 
-
-
-// Lấy dữ liệu từ request
+// Lấy status từ request body
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($data['order_id']) || !isset($data['status'])) {
+if (!isset($data['status'])) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Thiếu id đơn hàng hoặc status!'
+        'message' => 'Thiếu status!'
     ]);
     http_response_code(400);
     exit;
 }
 
-$order_id = $data['order_id'];
 $status = $data['status'];
 
 // Kiểm tra đơn hàng tồn tại

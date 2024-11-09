@@ -683,6 +683,32 @@ elseif (preg_match("/\/order_detail\/(\w+)$/", $request_uri, $matches)) {
 elseif (preg_match("/\/order\/create$/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/order/create_order.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use POST request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// fix order
+// {
+//     "status": "Đã giao hàng"
+// }
+// URL: http://localhost/WebDoAn/main.php/order/fix/order_id    
+elseif (preg_match("/\/order\/fix\/(\w+)$/", $request_uri, $matches)) {
+    $order_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        include './model/order/fix_order.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use PUT request.'
+        ]);
+        http_response_code(405);
     }
 } else {
     echo json_encode([

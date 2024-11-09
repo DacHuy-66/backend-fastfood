@@ -40,20 +40,12 @@ function validateStatus($status)
     }
 }
 
-function setDefaultCorsHeaders()
+function Headers()
 {
-    ini_set('display_errors', 1);
-    error_reporting(E_ALL);
-
     // thêm header để debug
     header('Access-Control-Allow-Origin: *');
     header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS");
     header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method,Access-Control-Request-Headers, Authorization");
     header('Content-Type: application/json');
 
-    // xử lý yêu cầu preflight
-    if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-        header("HTTP/1.1 200 OK");
-        exit();
-    }
 }
