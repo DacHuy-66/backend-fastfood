@@ -14,7 +14,7 @@ try {
     $sort_order = isset($_GET['sort_order']) && strtoupper($_GET['sort_order']) === 'ASC' ? 'ASC' : 'DESC';
 
     // Chuẩn bị câu truy vấn SQL
-    $sql = "SELECT id, name, user_id, email, code, description, minimum_price, type, 
+    $sql = "SELECT id, name, user_id, email, code, description, minimum_price, 
             discount_percent, valid_from, valid_to, status 
             FROM discount_user 
             WHERE (name LIKE ? OR email LIKE ? OR code LIKE ?) 

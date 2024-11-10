@@ -17,7 +17,6 @@ class Discount {
     public $valid_to;
     public $quantity;
     public $minimum_price;
-    public $type;
     public $status;
 
     // Constructor
@@ -36,7 +35,6 @@ class Discount {
                     valid_to = ?,
                     quantity = ?,
                     minimum_price = ?,
-                    type = ?,
                     status = ?";
 
         $stmt = $this->conn->prepare($query);
@@ -50,11 +48,10 @@ class Discount {
         $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
-        $this->type = htmlspecialchars(strip_tags($this->type));
         $this->status = 1;
 
         // Bind data
-        $stmt->bind_param("sssissiisi",
+        $stmt->bind_param("sssissiii",
             $this->code,
             $this->name,
             $this->description,
@@ -63,7 +60,6 @@ class Discount {
             $this->valid_to,
             $this->quantity,
             $this->minimum_price,
-            $this->type,
             $this->status
         );
 
@@ -103,13 +99,11 @@ class Discount {
         $query = "UPDATE " . $this->table . "
                 SET code = ?,
                     name = ?,
-  
                     discount_percent = ?,
                     valid_from = ?,
                     valid_to = ?,
                     quantity = ?,
                     minimum_price = ?,
-                    type = ?,
                     status = ?
                 WHERE id = ?";
 
@@ -124,12 +118,11 @@ class Discount {
         $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
-        $this->type = htmlspecialchars(strip_tags($this->type));
         $this->status = htmlspecialchars(strip_tags($this->status));
         $this->id = htmlspecialchars(strip_tags($this->id));
 
         // Bind data
-        $stmt->bind_param("ssissiisii",
+        $stmt->bind_param("ssissiiii",
             $this->code,
             $this->name,
             // $this->description,
@@ -138,7 +131,6 @@ class Discount {
             $this->valid_to,
             $this->quantity,
             $this->minimum_price,
-            $this->type,
             $this->status,
             $this->id
         );
@@ -229,6 +221,18 @@ class Discount {
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         return $row['count'] > 0;
+    }
+
+    public function generateUniqueCode($length = 8) {
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        do {
+            $code = '';
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $characters[rand(0, strlen($characters) - 1)];
+            }
+        } while ($this->isCodeExists($code));
+        
+        return $code;
     }
 
 }

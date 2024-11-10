@@ -59,7 +59,6 @@ try {
             'status' => (bool)$row['status'],
             'message' => $row['message'],
             'minimum_price' => (float)$row['minimum_price'],
-            'type' => $row['type'],
             'days_remaining' => $row['message'] === 'active' ? 
                 (new DateTime())->diff($valid_to)->days : 0
         ];

@@ -44,10 +44,10 @@ try {
             $update_stmt->execute();
             
             // tăng lại số lượng trong kho
-            $update_product_sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
-            $update_product_stmt = $conn->prepare($update_product_sql);
-            $update_product_stmt->bind_param("is", $quantity, $cart_item['product_id']);
-            $update_product_stmt->execute();
+            // $update_product_sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
+            // $update_product_stmt = $conn->prepare($update_product_sql);
+            // $update_product_stmt->bind_param("is", $quantity, $cart_item['product_id']);
+            // $update_product_stmt->execute();
             
             $message = 'Giảm số lượng thành công';
         } else {
@@ -58,10 +58,10 @@ try {
             $delete_stmt->execute();
             
             // tăng lại số lượng trong kho
-            $update_product_sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
-            $update_product_stmt = $conn->prepare($update_product_sql);
-            $update_product_stmt->bind_param("is", $cart_item['quantity'], $cart_item['product_id']);
-            $update_product_stmt->execute();
+            // $update_product_sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
+            // $update_product_stmt = $conn->prepare($update_product_sql);
+            // $update_product_stmt->bind_param("is", $cart_item['quantity'], $cart_item['product_id']);
+            // $update_product_stmt->execute();
             
             $message = 'Xóa sản phẩm thành công do số lượng trở thành 0';
         }
@@ -73,10 +73,10 @@ try {
         $delete_stmt->execute();
         
         // tăng lại số lượng trong kho
-        $update_product_sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
-        $update_product_stmt = $conn->prepare($update_product_sql);
-        $update_product_stmt->bind_param("is", $cart_item['quantity'], $cart_item['product_id']);
-        $update_product_stmt->execute();
+        // $update_product_sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
+        // $update_product_stmt = $conn->prepare($update_product_sql);
+        // $update_product_stmt->bind_param("is", $cart_item['quantity'], $cart_item['product_id']);
+        // $update_product_stmt->execute();
         
         $message = 'Xóa sản phẩm thành công';
     }

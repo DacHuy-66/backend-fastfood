@@ -1,5 +1,8 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
+include_once __DIR__ . '/../../utils/helpers.php';
+
+Headers();
 
 // Lấy order_id từ URL
 $request_uri = $_SERVER['REQUEST_URI'];

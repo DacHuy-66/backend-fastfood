@@ -11,22 +11,26 @@ try {
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
     $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;
     
+    // Add new search parameters
+    $email = isset($_GET['q']) ? $_GET['q'] : null;
+    $order_id = isset($_GET['id']) ? intval($_GET['id']) : null;
+    $discount_code = isset($_GET['code']) ? $_GET['code'] : null;
+    
     // Lấy kết quả
-    $result = $discount_history->read($page, $limit, $user_id);
-    $total_records = $discount_history->getTotalCount($user_id);
+    $result = $discount_history->read($page, $limit, $user_id, $email, $order_id, $discount_code);
+    $total_records = $discount_history->getTotalCount($user_id, $email, $order_id, $discount_code);
     
     if ($result->num_rows > 0) {
         $history_arr = [];
         
         while ($row = $result->fetch_assoc()) {
             $history_item = array(
-                'id' => (int)$row['id'],
-                'user_id' => $row['user_id'],
-                'username' => $row['username'],
+                'discount_code' => $row['discount_code'],
+                'discount_percent' => $row['discount_percent'],
                 'email' => $row['email'],
-                'status' => $row['status'],
                 'datetime' => $row['datetime'],
-                'code' => $row['code'],
+                'order_id' => $row['order_id'],
+                'status' => $row['status']
             );
             
             $history_arr[] = $history_item;

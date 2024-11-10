@@ -20,7 +20,7 @@ try {
               FROM orders o
               LEFT JOIN users u ON o.user_id = u.id
               WHERE 1=1 
-              AND o.status NOT IN ('Cancel', 'Completed') ";
+              AND o.status IN ('Cancel', 'Completed') ";
 
     if ($search) {
         $query .= "AND (o.id LIKE ? OR u.username LIKE ? OR u.email LIKE ?) ";
@@ -78,7 +78,7 @@ try {
     $count_query = "SELECT COUNT(*) as total FROM orders o 
                     LEFT JOIN users u ON o.user_id = u.id
                     WHERE 1=1
-                    AND o.status NOT IN ('Cancel', 'Completed')";
+                    AND o.status IN ('Cancel', 'Completed')";
     if ($search) {
         $count_query .= " AND (o.id LIKE ? OR u.username LIKE ? OR u.email LIKE ?)";
     }

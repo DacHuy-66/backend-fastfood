@@ -43,7 +43,6 @@ try {
     $discount->name = $data->name ?? '';
     $discount->description = $data->description ?? '';
     $discount->minimum_price = $data->minimum_price ?? 0;
-    $discount->type = $data->type ?? 'percent';
     $discount->discount_percent = $data->discount_percent ?? 0;
     $discount->valid_from = $data->valid_from ?? null;
     $discount->valid_to = $data->valid_to ?? null;

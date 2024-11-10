@@ -9,7 +9,7 @@ class DiscountHistory
     public $user_id;
     public $status;
     public $datetime;
-    public $code;
+    public $discount_code;
     public function __construct($db)
     {
         $this->conn = $db;
@@ -17,37 +17,62 @@ class DiscountHistory
 
 
     // Lấy lịch sử chiết khấu với phân trang
-    public function read($page = 1, $limit = 10, $user_id = null)
+    public function read($page = 1, $limit = 10, $user_id = null, $email = null, $order_id = null, $discount_code = null)
     {
         $offset = ($page - 1) * $limit;
-        $query = "SELECT 
-                    dh.id,
-                    dh.user_id,
-                    dh.status,
+        $conditions = [];
+        $params = [];
+        $types = "";
+
+        $query = "SELECT DISTINCT
+                    dh.discount_code,
                     dh.datetime,
-                    dh.code,
-                    u.username,
                     u.email,
-                    d.description as discount_description,
-                    d.discount_percent
+                    d.discount_percent,
+                    (SELECT o.id FROM orders o WHERE o.discount_code = dh.discount_code LIMIT 1) as order_id,
+                    (SELECT o.status FROM orders o WHERE o.discount_code = dh.discount_code LIMIT 1) as status
                 FROM " . $this->table . " dh
                 LEFT JOIN users u ON dh.user_id = u.id
-                LEFT JOIN discounts d ON dh.code = d.code ";
+                LEFT JOIN discounts d ON dh.discount_code = d.code
+                LEFT JOIN orders o ON o.discount_code = dh.discount_code ";
 
-        // thêm điều kiện lọc theo user_id nếu có   
+        // Build conditions array and params
         if ($user_id) {
-            $query .= "WHERE dh.user_id = ? ";
+            $conditions[] = "dh.user_id = ?";
+            $params[] = $user_id;
+            $types .= "i";
+        }
+        if ($email) {
+            $conditions[] = "u.email LIKE ?";
+            $params[] = "%$email%";
+            $types .= "s";
+        }
+        if ($order_id) {
+            $conditions[] = "o.id = ?";
+            $params[] = $order_id;
+            $types .= "i";
+        }
+        if ($discount_code) {
+            $conditions[] = "dh.discount_code LIKE ?";
+            $params[] = "%$discount_code%";
+            $types .= "s";
         }
 
-        // thêm điều kiện sắp xếp và phân trang
-        $query .= "ORDER BY dh.datetime DESC LIMIT ? OFFSET ?";
+        // Add WHERE clause if conditions exist
+        if (!empty($conditions)) {
+            $query .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        // Add pagination
+        $query .= " ORDER BY dh.datetime DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        $types .= "ii";
 
         $stmt = $this->conn->prepare($query);
 
-        if ($user_id) {
-            $stmt->bind_param("iii", $user_id, $limit, $offset);
-        } else {
-            $stmt->bind_param("ii", $limit, $offset);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
         }
 
         $stmt->execute();
@@ -55,16 +80,46 @@ class DiscountHistory
     }
 
     // Lấy tổng số lượng bản ghi lịch sử chiết khấu
-    public function getTotalCount($user_id = null)
+    public function getTotalCount($user_id = null, $email = null, $order_id = null, $discount_code = null)
     {
-        $query = "SELECT COUNT(*) as total FROM " . $this->table;
+        $conditions = [];
+        $params = [];
+        $types = "";
+
+        $query = "SELECT COUNT(DISTINCT dh.id) as total 
+                 FROM " . $this->table . " dh
+                 LEFT JOIN users u ON dh.user_id = u.id
+                 LEFT JOIN orders o ON o.discount_code = dh.discount_code ";
 
         if ($user_id) {
-            $query .= " WHERE user_id = ?";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("i", $user_id);
-        } else {
-            $stmt = $this->conn->prepare($query);
+            $conditions[] = "dh.user_id = ?";
+            $params[] = $user_id;
+            $types .= "i";
+        }
+        if ($email) {
+            $conditions[] = "u.email LIKE ?";
+            $params[] = "%$email%";
+            $types .= "s";
+        }
+        if ($order_id) {
+            $conditions[] = "o.id = ?";
+            $params[] = $order_id;
+            $types .= "i";
+        }
+        if ($discount_code) {
+            $conditions[] = "dh.discount_code LIKE ?";
+            $params[] = "%$discount_code%";
+            $types .= "s";
+        }
+
+        if (!empty($conditions)) {
+            $query .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $stmt = $this->conn->prepare($query);
+        
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
         }
 
         $stmt->execute();

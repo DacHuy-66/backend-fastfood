@@ -345,7 +345,6 @@ elseif (preg_match("/\/review\/(\w+)$/", $request_uri, $matches)) {
 //     "discount_percent": 10,
 //     "quantity": 100,
 //     "minimum_price": 10,
-//     "type": "percent",
 //     "valid_from": "2024-06-21",
 //     "valid_to": "2024-06-22"
 // }
@@ -391,7 +390,6 @@ elseif (preg_match("/\/discount$/", $request_uri) || preg_match("/\/discount\?/"
 //     "discount_percent": 10,
 //     "quantity": 10,
 //     "minimum_price": 20,
-//     "type": "percen2222t",
 //     "valid_from": "2024-06-21",
 //     "valid_to": "2024-06-29",
 //     "status": 0
@@ -416,7 +414,13 @@ elseif (preg_match("/\/discount\/(\w+)$/", $request_uri, $matches)) {
 // discount_user
 
 // list discount user
-// url: http://localhost/WebDoAn/main.php/discount/user/delete/{user_id}
+// url: http://localhost/WebDoAn/main.php/discount/user/{user_id}
+elseif (preg_match("/\/discount\/user\/(\w+)$/", $request_uri, $matches)) {
+    $user_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/discount/list_discount_user.php';
+    }
+}
 
 // delete discount user
 // URL: http://localhost/WebDoAn/main.php/discount/user/delete/{id}
@@ -424,8 +428,6 @@ elseif (preg_match("/\/discount\/user\/delete\/(\w+)$/", $request_uri, $matches)
     $product_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         include './model/discount/delete_discount_user.php';
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        include './model/discount/list_discount_user.php';
     } else {
         echo json_encode([
             'ok' => false,
@@ -442,7 +444,6 @@ elseif (preg_match("/\/discount\/user\/delete\/(\w+)$/", $request_uri, $matches)
 //     "description": "Khuyến mãi ",
 //     "minimum_price": 20000,
 //     "code": "22ádas22220",
-//     "type": "cake",
 //     "discount_percent": 20,
 //     "valid_from": "2024-03-21",
 //     "valid_to": "2024-04-21",
@@ -468,7 +469,6 @@ elseif (preg_match("/\/discount\/user\/fix\/(\w+)$/", $request_uri, $matches)) {
 //     "email": "thuan33@gmail.com",
 //     "name": "Giảm mùa hè",
 //     "minimum_price": 100000,
-//     "type": "percent",
 //     "discount_percent": 15,
 //     "valid_from": "2024-03-20",
 //     "valid_to": "2024-04-20"
@@ -650,6 +650,13 @@ elseif (preg_match("/\/cart\/delete\/(\w+)$/", $request_uri)) {
 elseif (preg_match("/\/order(\?.*)?$/", $request_uri)) {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         include './model/order/list_order.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
     }
 }
 
@@ -710,7 +717,45 @@ elseif (preg_match("/\/order\/fix\/(\w+)$/", $request_uri, $matches)) {
         ]);
         http_response_code(405);
     }
-} else {
+}
+
+// history order
+// URL: http://localhost/WebDoAn/main.php/history_order
+elseif (preg_match("/\/history_order$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/order/history_order.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// history order admin
+// URL: http://localhost/WebDoAn/main.php/history_order_admin
+elseif (preg_match("/\/history_order_admin(\?.*)?$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/order/history_order_admin.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// detail order client
+// URL: http://localhost/WebDoAn/main.php/order_detail/order_id
+elseif (preg_match("/\/order_detail\/(\w+)$/", $request_uri, $matches)) {
+    $order_id = $matches[1];
+    include './model/order/detail_order.php';
+}
+else {
     echo json_encode([
         'ok' => false,
         'success' => false,

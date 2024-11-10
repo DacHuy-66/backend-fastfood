@@ -73,16 +73,16 @@ try {
         $cart_item = $cart_result->fetch_assoc();
         $new_quantity = $cart_item['quantity'] + $quantity;
         
+        // Kiểm tra số lượng yêu cầu có vượt quá số lượng trong kho không
+        if ($new_quantity > $product['quantity']) {
+            throw new Exception('Số lượng yêu cầu vượt quá số lượng có sẵn', 400);
+        }
+        
         // Kiểm tra giới hạn số lượng trong giỏ hàng
         if ($new_quantity > 20) {
             throw new Exception('Số lượng sản phẩm trong giỏ hàng không được vượt quá 20', 400);
         }
-        
-        // Kiểm tra lại số lượng sau khi cộng thêm
-        if ($product['quantity'] < $new_quantity) {
-            throw new Exception('Số lượng sản phẩm trong kho không đủ', 400);
-        }
-        
+
         // Cập nhật số lượng trong giỏ hàng
         $update_sql = "UPDATE cart SET quantity = ? WHERE id = ?";
         $update_stmt = $conn->prepare($update_sql);
@@ -90,11 +90,11 @@ try {
         $update_stmt->execute();
 
         // Cập nhật số lượng sản phẩm trong kho
-        $new_stock = $product['quantity'] - $quantity;
-        $update_stock_sql = "UPDATE products SET quantity = ? WHERE id = ?";
-        $update_stock_stmt = $conn->prepare($update_stock_sql);
-        $update_stock_stmt->bind_param("is", $new_stock, $product_id);
-        $update_stock_stmt->execute();
+        // $new_stock = $product['quantity'] - $quantity;
+        // $update_stock_sql = "UPDATE products SET quantity = ? WHERE id = ?";
+        // $update_stock_stmt = $conn->prepare($update_stock_sql);
+        // $update_stock_stmt->bind_param("is", $new_stock, $product_id);
+        // $update_stock_stmt->execute();
     } else {
         // Kiểm tra tổng số sản phẩm trong giỏ hàng của user khi thêm mới
         $total_products_sql = "SELECT COUNT(*) as total FROM cart WHERE user_id = ?";
@@ -113,12 +113,12 @@ try {
         $insert_stmt->bind_param("ssi", $user_id, $product_id, $quantity);
         $insert_stmt->execute();
 
-        // Cập nhật số lượng sản phẩm trong kho
-        $new_stock = $product['quantity'] - $quantity;
-        $update_stock_sql = "UPDATE products SET quantity = ? WHERE id = ?";
-        $update_stock_stmt = $conn->prepare($update_stock_sql);
-        $update_stock_stmt->bind_param("is", $new_stock, $product_id);
-        $update_stock_stmt->execute();
+        // // Cập nhật số lượng sản phẩm trong kho
+        // $new_stock = $product['quantity'] - $quantity;
+        // $update_stock_sql = "UPDATE products SET quantity = ? WHERE id = ?";
+        // $update_stock_stmt = $conn->prepare($update_stock_sql);
+        // $update_stock_stmt->bind_param("is", $new_stock, $product_id);
+        // $update_stock_stmt->execute();
     }
 
     // chuẩn bị response thành công

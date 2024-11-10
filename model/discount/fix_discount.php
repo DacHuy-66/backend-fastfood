@@ -50,7 +50,6 @@ try {
     $discount->valid_to = $data->valid_to;
     $discount->quantity = $data->quantity ?? 0;
     $discount->minimum_price = $data->minimum_price ?? 0;
-    $discount->type = $data->type ?? 'percent';
     $discount->status = $data->status ?? 1;
 
     if ($discount->update()) {

@@ -13,7 +13,6 @@ class DiscountUser
     public $code;
     public $description;
     public $minimum_price;
-    public $type;
     public $discount_percent;
     public $valid_from;
     public $valid_to;
@@ -36,7 +35,6 @@ class DiscountUser
                     code = ?,
                     description = ?,
                     minimum_price = ?,
-                    type = ?,
                     discount_percent = ?,
                     valid_from = ?,
                     valid_to = ?,
@@ -51,21 +49,19 @@ class DiscountUser
         $this->code = htmlspecialchars(strip_tags($this->code));
         $this->description = htmlspecialchars(strip_tags($this->description));
         $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
-        $this->type = htmlspecialchars(strip_tags($this->type));
         $this->discount_percent = htmlspecialchars(strip_tags($this->discount_percent));
         $this->valid_from = htmlspecialchars(strip_tags($this->valid_from));
         $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
         $this->status = 1;
         // Bind data
         $stmt->bind_param(
-            "ssssssssssi",
+            "sssssssssi",
             $this->name,
             $this->user_id,
             $this->email,
             $this->code,
             $this->description,
             $this->minimum_price,
-            $this->type,
             $this->discount_percent,
             $this->valid_from,
             $this->valid_to,
@@ -89,7 +85,6 @@ class DiscountUser
                     email = ?,
                     description = ?,
                     minimum_price = ?,
-                    type = ?,
                     discount_percent = ?,
                     valid_from = ?,
                     valid_to = ?,
@@ -104,7 +99,6 @@ class DiscountUser
         $this->code = htmlspecialchars(strip_tags($this->code));
         $this->description = htmlspecialchars(strip_tags($this->description));
         $this->minimum_price = htmlspecialchars(strip_tags($this->minimum_price));
-        $this->type = htmlspecialchars(strip_tags($this->type));
         $this->discount_percent = htmlspecialchars(strip_tags($this->discount_percent));
         $this->valid_from = htmlspecialchars(strip_tags($this->valid_from));
         $this->valid_to = htmlspecialchars(strip_tags($this->valid_to));
@@ -113,13 +107,12 @@ class DiscountUser
         $this->user_id = htmlspecialchars(strip_tags($this->user_id));
         // Bind data
         $stmt->bind_param(
-            "sssssssssisi",
+            "ssssssssisi",
             $this->name,
             $this->code,
             $this->email,
             $this->description,
             $this->minimum_price,
-            $this->type,
             $this->discount_percent,
             $this->valid_from,
             $this->valid_to,
@@ -148,7 +141,6 @@ class DiscountUser
                     du.code,
                     du.description,
                     du.minimum_price,
-                    du.type,
                     du.discount_percent,
                     du.valid_from,
                     du.valid_to,

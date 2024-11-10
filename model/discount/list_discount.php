@@ -50,7 +50,6 @@ try {
                 'description' => $row['description'],
                 'quantity' => (int)$row['quantity'],
                 'minimum_price' => (float)$row['minimum_price'],
-                'type' => $row['type'],
                 'discount_percent' => (int)$row['discount_percent'],
                 'valid_from' => $row['valid_from'],
                 'valid_to' => $row['valid_to'],

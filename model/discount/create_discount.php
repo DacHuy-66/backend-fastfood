@@ -10,13 +10,17 @@ try {
     // Lấy dữ liệu được gửi đi
     $data = json_decode(file_get_contents("php://input"));
     
-    if (!$data || !isset($data->code) || !isset($data->name) || 
+    if (!$data || !isset($data->name) || 
         !isset($data->discount_percent) || !isset($data->valid_from) || !isset($data->valid_to) ||
-        !isset($data->quantity) || !isset($data->minimum_price) || !isset($data->type)) {
+        !isset($data->quantity) || !isset($data->minimum_price)) {
         throw new Exception("Thiếu các trường bắt buộc", 400);
     }
     
     // Kiểm tra mã code đã tồn tại chưa
+    if (empty($data->code)) {
+        $data->code = $discount->generateUniqueCode();
+    }
+    
     if ($discount->isCodeExists($data->code)) {
         throw new Exception("Mã giảm giá này đã tồn tại", 400);
     }
@@ -44,7 +48,6 @@ try {
     $discount->valid_to = $data->valid_to;
     $discount->quantity = $data->quantity;
     $discount->minimum_price = $data->minimum_price;
-    $discount->type = $data->type;
     $discount->status = 1;
     
     if ($discount->create()) {
