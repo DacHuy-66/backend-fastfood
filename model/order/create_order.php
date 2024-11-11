@@ -110,9 +110,10 @@ try {
        }
    }
 
-   // Tạo đơn hàng
-   $order_sql = "INSERT INTO orders (id, user_id, address_id, quantity, status, note, discount_code, total_price, subtotal, created_at, updated_at) 
-               VALUES (?, ?, ?, ?, 'Pending', ?, ?, ?, ?, NOW(), NOW())";
+   // Tạo đơn hàng - cập nhật theo cấu trúc bảng mới
+   $order_sql = "INSERT INTO orders (id, user_id, address_id, quantity, status, reason, note, 
+                                   discount_code, total_price, subtotal, review, created_at, updated_at) 
+               VALUES (?, ?, ?, ?, 'Pending', NULL, ?, ?, ?, ?, 1, NOW(), NOW())";
    $order_stmt = $conn->prepare($order_sql);
    $note = $data['note'] ?? null;
    $total_price = $data['total_price'];

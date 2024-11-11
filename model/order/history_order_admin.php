@@ -16,7 +16,7 @@ try {
     $offset = ($page - 1) * $limit;
 
     $query = "SELECT o.id, o.created_at, o.status, u.username, 
-              o.quantity, o.total_price
+              o.quantity, o.total_price, o.subtotal, o.reason, o.review
               FROM orders o
               LEFT JOIN users u ON o.user_id = u.id
               WHERE 1=1 
@@ -71,7 +71,10 @@ try {
             'username' => $row['username'],
             'created_at' => $row['created_at'],
             'status' => $row['status'],
-            'total_price' => $row['total_price']
+            'total_price' => $row['total_price'],
+            'subtotal' => $row['subtotal'],
+            'reason' => $row['reason'],
+            'review' => (bool)$row['review']
         ];
     }
 

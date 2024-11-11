@@ -16,9 +16,10 @@ try {
     }
 
     // Query lấy thông tin đơn hàng theo order_id
-    $orders_sql = "SELECT o.*, da.phone, da.address
+    $orders_sql = "SELECT o.*, da.phone, da.address, u.username
                    FROM orders o
                    LEFT JOIN detail_address da ON o.address_id = da.id
+                   LEFT JOIN users u ON o.user_id = u.id
                    WHERE o.id = ?
                    ORDER BY o.created_at DESC";
     
@@ -91,13 +92,17 @@ try {
         'order_id' => $order['id'],
         'order_status' => $order['status'],
         'created_at' => $order['created_at'],
+        'username' => $order['username'],
         'shipping_info' => [
             'phone' => $order['phone'],
             'address' => $order['address'],
             'note' => $order['note']
         ],
         'products' => $products,
-        'total_price' => $total_price,
+        'total_price' => $order['total_price'],
+        'subtotal' => $order['subtotal'],
+        'reason' => $order['reason'],
+        'review' => (bool)$order['review'],
         'discount' => $discount_info,
         'payment' => $payment_info
     ];

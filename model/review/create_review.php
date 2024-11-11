@@ -2,51 +2,73 @@
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With, X-Api-Key');
 
 include_once __DIR__ . '/../../config/db.php';
 
-$current_url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
 try {
+    $headers = getallheaders();
+    $api_key = $headers['X-Api-Key'] ?? '';
+
+    if (empty($api_key)) {
+        throw new Exception('API key bị thiếu.', 401);
+    }
+
+    $sql = "SELECT id FROM users WHERE api_key = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $api_key);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        throw new Exception('API key không hợp lệ.', 401);
+    }
+
+    $user = $result->fetch_assoc();
     $data = json_decode(file_get_contents("php://input"));
 
-    // kiểm tra các trường bắt buộc
-    if (!isset($data->user_id) || !isset($data->product_id) || !isset($data->rating)) {
-        throw new Exception('Thiếu các trường bắt buộc: user_id, product_id, và rating là bắt buộc', 400);
+    if (!isset($data->product_id) || !isset($data->rating)) {
+        throw new Exception('Thiếu các trường bắt buộc: product_id và rating là bắt buộc', code: 400);
     }
 
     if (!is_numeric($data->rating) || $data->rating < 1 || $data->rating > 5) {
         throw new Exception('Đánh giá không hợp lệ. Phải nằm giữa 1 và 5', 400);
     }
 
-    // chuẩn bị câu truy vấn chèn
+    $comment = $data->comment ?? '';
+    
+    // Xử lý mảng images
+    $images = $data->images ?? [];
+    $image_1 = isset($images[0]) ? $images[0] : null;
+    $image_2 = isset($images[1]) ? $images[1] : null;
+    $image_3 = isset($images[2]) ? $images[2] : null;
+
     $query = "INSERT INTO reviews (user_id, product_id, rating, comment, image_1, image_2, image_3, created_at) 
               VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
     $stmt = $conn->prepare($query);
-    
-    // gán các tham số
-    $comment = $data->comment ?? '';
-    $image_1 = $data->image_1 ?? null; // giả định là các đường dẫn hình ảnh được truyền
-    $image_2 = $data->image_2 ?? null;
-    $image_3 = $data->image_3 ?? null;
-
-    // gán các tham số
     $stmt->bind_param("ssissss", 
-        $data->user_id, 
-        $data->product_id, 
-        $data->rating, 
-        $comment, 
-        $image_1, 
-        $image_2, 
+        $user['id'],
+        $data->product_id,
+        $data->rating,
+        $comment,
+        $image_1,
+        $image_2,
         $image_3
     );
 
     if ($stmt->execute()) {
         $new_review_id = $conn->insert_id;
 
-        // lấy đánh giá đã tạo
+        // Cập nhật trường review trong bảng orders
+        $update_order_sql = "UPDATE orders o 
+                            INNER JOIN product_order po ON o.id = po.order_id 
+                            SET o.review = 0 
+                            WHERE o.user_id = ? AND po.product_id = ?";
+        $update_order_stmt = $conn->prepare($update_order_sql);
+        $update_order_stmt->bind_param("ss", $user['id'], $data->product_id);
+        $update_order_stmt->execute();
+
         $select_query = "SELECT r.*, u.username 
                          FROM reviews r
                          LEFT JOIN users u ON r.user_id = u.id 

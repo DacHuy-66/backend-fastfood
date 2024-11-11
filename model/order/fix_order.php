@@ -9,7 +9,7 @@ $request_uri = $_SERVER['REQUEST_URI'];
 $path_parts = explode('/', $request_uri);
 $order_id = end($path_parts); // Lấy phần tử cuối cùng của URL
 
-// Lấy status từ request body
+// Lấy status và reason từ request body
 $data = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($data['status'])) {
@@ -23,13 +23,15 @@ if (!isset($data['status'])) {
 }
 
 $status = $data['status'];
+$reason = isset($data['reason']) ? $data['reason'] : null;
 
-// Kiểm tra đơn hàng tồn tại
+// Kiểm tra đơn hàng tồn tại và lấy thông tin discount
 $check_sql = "SELECT * FROM orders WHERE id = ?";
 $check_stmt = $conn->prepare($check_sql);
 $check_stmt->bind_param("s", $order_id);
 $check_stmt->execute();
 $result = $check_stmt->get_result();
+$order = $result->fetch_assoc();
 
 if ($result->num_rows === 0) {
     echo json_encode([
@@ -41,26 +43,76 @@ if ($result->num_rows === 0) {
     exit;
 }
 
-// Cập nhật trạng thái đơn hàng
-$update_sql = "UPDATE orders SET status = ? WHERE id = ?";
-$update_stmt = $conn->prepare($update_sql);
-$update_stmt->bind_param("ss", $status, $order_id);
+try {
+    $conn->begin_transaction();
 
-if ($update_stmt->execute()) {
+    // Nếu status là Cancel và đơn hàng có discount code
+    if ($status === 'Cancel' && !empty($order['discount_code'])) {
+        // Kiểm tra xem discount có phải của user cụ thể không
+        $check_user_discount_sql = "SELECT * FROM discount_user WHERE code = ? AND user_id = ?";
+        $check_user_stmt = $conn->prepare($check_user_discount_sql);
+        $check_user_stmt->bind_param("ss", $order['discount_code'], $order['user_id']);
+        $check_user_stmt->execute();
+        $user_discount_result = $check_user_stmt->get_result();
+
+        if ($user_discount_result->num_rows > 0) {
+            // Nếu là discount của user cụ thể - thêm lại vào discount_user
+            $insert_sql = "INSERT INTO discount_user (user_id, code, email, description, discount_percent, valid_from, valid_to, status) 
+                          SELECT ?, code, email, description, discount_percent, valid_from, valid_to, status 
+                          FROM discount_user WHERE code = ? LIMIT 1";
+            $insert_stmt = $conn->prepare($insert_sql);
+            $insert_stmt->bind_param("ss", $order['user_id'], $order['discount_code']);
+            $insert_stmt->execute();
+        } else {
+            // Nếu là discount chung - tăng số lượng
+            $update_sql = "UPDATE discounts SET quantity = quantity + 1 WHERE code = ?";
+            $update_stmt = $conn->prepare($update_sql);
+            $update_stmt->bind_param("s", $order['discount_code']);
+            $update_stmt->execute();
+        }
+
+        // Cập nhật trạng thái trong discount_history
+        $update_history_sql = "UPDATE discount_history SET status = 'cancelled' 
+                             WHERE user_id = ? AND discount_code = ? AND status = 'used' 
+                             ORDER BY Datetime DESC LIMIT 1";
+        $update_history_stmt = $conn->prepare($update_history_sql);
+        $update_history_stmt->bind_param("ss", $order['user_id'], $order['discount_code']);
+        $update_history_stmt->execute();
+    }
+
+    // Cập nhật trạng thái đơn hàng và review nếu status là Cancel
+    if ($status === 'Cancel') {
+        $update_sql = "UPDATE orders SET status = ?, reason = ?, review = 0 WHERE id = ?";
+        $update_stmt = $conn->prepare($update_sql);
+        $update_stmt->bind_param("sss", $status, $reason, $order_id);
+    } else {
+        $update_sql = "UPDATE orders SET status = ?, reason = ? WHERE id = ?";
+        $update_stmt = $conn->prepare($update_sql);
+        $update_stmt->bind_param("sss", $status, $reason, $order_id);
+    }
+    
+    $update_stmt->execute();
+
+    $conn->commit();
+
     echo json_encode([
         'ok' => true,
         'success' => true,
         'message' => 'Cập nhật trạng thái đơn hàng thành công!',
         'data' => [
             'order_id' => $order_id,
-            'status' => $status
+            'status' => $status,
+            'reason' => $reason,
+            'review' => ($status === 'Cancel') ? false : null
         ]
     ]);
-} else {
+
+} catch (Exception $e) {
+    $conn->rollback();
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Lỗi khi cập nhật trạng thái đơn hàng!'
+        'message' => 'Lỗi khi cập nhật trạng thái đơn hàng: ' . $e->getMessage()
     ]);
     http_response_code(500);
 }

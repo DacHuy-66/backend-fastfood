@@ -33,7 +33,10 @@ try {
                          p.payment_method, 
                          p.payment_status,
                          da.address,
-                         da.phone
+                         da.phone,
+                         o.reason,
+                         o.review,
+                         o.subtotal
                   FROM orders o
                   LEFT JOIN payments p ON o.id = p.order_id
                   LEFT JOIN detail_address da ON o.address_id = da.id
@@ -74,8 +77,10 @@ try {
             'created_at' => $order['created_at'],
             'status' => $order['status'],
             'total_price' => $order['total_price'],
-            // 'address' => $order['address'],
+            'subtotal' => $order['subtotal'],
             'phone' => $order['phone'],
+            'reason' => $order['reason'],
+            'review' => (bool)$order['review'],
             'payment_method' => $order['payment_method'],
             'payment_status' => $order['payment_status'],
             'products' => $products

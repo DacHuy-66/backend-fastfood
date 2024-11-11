@@ -271,8 +271,8 @@ elseif (preg_match("/\/products\/top$/", $request_uri) || preg_match("/\/product
 // review route
 
 // create review
+// X-Api-Key: ""
 // {
-//     "user_id": "6725f9f019f57",
 //     "product_id": "2kashfkshfkjhsadfkh",
 //     "rating": 5,
 //     "comment": "Great product!",
@@ -284,7 +284,7 @@ elseif (preg_match("/\/products\/top$/", $request_uri) || preg_match("/\/product
 // url: http://localhost/WebDoAn/main.php/review
 // http://localhost/WebDoAn/main.php/review?page=1&limit=10&rating=5&search=Great
 elseif (preg_match("/\/review$/", $request_uri) || preg_match("/\/review\?/", $request_uri)) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         include './model/review/create_review.php';
     } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
         // kiểm tra và làm sạch các tham số phân trang
@@ -755,6 +755,112 @@ elseif (preg_match("/\/order_detail\/(\w+)$/", $request_uri, $matches)) {
     $order_id = $matches[1];
     include './model/order/detail_order.php';
 }
+
+// message route
+// list message
+// X-Api-Key: 
+// URL: http://localhost/WebDoAn/main.php/message
+elseif (preg_match("/\/message$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/message/list_message.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// create message user
+// X-Api-Key: 
+// {
+//     "content": "...",
+// }
+// URL: http://localhost/WebDoAn/main.php/message_user
+elseif (preg_match("/\/message_user$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include './model/message/create_message_user.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use POST request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// create message admin
+// {
+//     "content": "...",
+// }
+// URL: http://localhost/WebDoAn/main.php/message_admin/user_id/admin_id
+elseif (preg_match("/\/message_admin\/(\w+)\/(\w+)$/", $request_uri, $matches)) {
+    $user_id = $matches[1];
+    $admin_id = $matches[2];
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include './model/message/create_message_admin.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use POST request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// list message admin
+// URL: http://localhost/WebDoAn/main.php/message_admin
+elseif (preg_match("/\/message_admin$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/message/list_message_admin.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// detail message user
+// URL: http://localhost/WebDoAn/main.php/detail_message_user/user_id
+elseif (preg_match("/\/detail_message_user\/(\w+)$/", $request_uri, $matches)) {
+    $user_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/message/detail_message_user.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// update message status
+// URL: http://localhost/WebDoAn/main.php/message/status/{message_id}
+// Method: PUT
+// Body: { "status": 0 } // 0: đã đọc, 1: chưa đọc
+elseif (preg_match("/\/message\/status\/(\w+)$/", $request_uri, $matches)) {
+    $message_id = $matches[1];
+    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        include './model/message/update_message_status.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use PUT request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
 else {
     echo json_encode([
         'ok' => false,
