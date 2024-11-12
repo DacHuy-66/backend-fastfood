@@ -27,10 +27,10 @@ class DiscountHistory
         $query = "SELECT DISTINCT
                     dh.discount_code,
                     dh.datetime,
+                    dh.status as status,
                     u.email,
                     d.discount_percent,
-                    (SELECT o.id FROM orders o WHERE o.discount_code = dh.discount_code LIMIT 1) as order_id,
-                    (SELECT o.status FROM orders o WHERE o.discount_code = dh.discount_code LIMIT 1) as status
+                    (SELECT o.id FROM orders o WHERE o.discount_code = dh.discount_code LIMIT 1) as order_id
                 FROM " . $this->table . " dh
                 LEFT JOIN users u ON dh.user_id = u.id
                 LEFT JOIN discounts d ON dh.discount_code = d.code

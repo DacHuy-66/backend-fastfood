@@ -46,6 +46,24 @@ if ($result->num_rows === 0) {
 try {
     $conn->begin_transaction();
 
+    // Nếu status là Completed - cập nhật số lượng đã bán của sản phẩm
+    if ($status === 'Completed') {
+        // Lấy danh sách sản phẩm trong đơn hàng từ bảng product_order
+        $get_products_sql = "SELECT product_id, quantity FROM product_order WHERE order_id = ?";
+        $get_products_stmt = $conn->prepare($get_products_sql);
+        $get_products_stmt->bind_param("s", $order_id);
+        $get_products_stmt->execute();
+        $products_result = $get_products_stmt->get_result();
+        
+        // Cập nhật số lượng đã bán cho từng sản phẩm
+        while ($product_item = $products_result->fetch_assoc()) {
+            $update_product_sql = "UPDATE products SET sold = sold + ? WHERE id = ?";
+            $update_product_stmt = $conn->prepare($update_product_sql);
+            $update_product_stmt->bind_param("is", $product_item['quantity'], $product_item['product_id']);
+            $update_product_stmt->execute();
+        }
+    }
+
     // Nếu status là Cancel và đơn hàng có discount code
     if ($status === 'Cancel' && !empty($order['discount_code'])) {
         // Kiểm tra xem discount có phải của user cụ thể không
@@ -72,8 +90,8 @@ try {
         }
 
         // Cập nhật trạng thái trong discount_history
-        $update_history_sql = "UPDATE discount_history SET status = 'cancelled' 
-                             WHERE user_id = ? AND discount_code = ? AND status = 'used' 
+        $update_history_sql = "UPDATE discount_history SET status = 'Cancel' 
+                             WHERE user_id = ? AND discount_code = ? AND status = 'Completed' 
                              ORDER BY Datetime DESC LIMIT 1";
         $update_history_stmt = $conn->prepare($update_history_sql);
         $update_history_stmt->bind_param("ss", $order['user_id'], $order['discount_code']);

@@ -4,18 +4,32 @@ include_once __DIR__ . '/../../utils/helpers.php';
 
 Headers();
 
-// Lấy user_id và admin_id từ URL
+// Lấy API key từ header
+$headers = getallheaders();
+$api_key = $headers['X-Api-Key'] ?? '';
+
+// Validate API key
+if (empty($api_key)) {
+    echo json_encode([
+        'ok' => false,
+        'success' => false,
+        'message' => 'API key bị thiếu!'
+    ]);
+    http_response_code(401);
+    exit;
+}
+
+// Lấy user_id từ URL
 $url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $path_parts = explode('/', trim($url_path, '/'));
 $model_index = array_search('message', $path_parts);
 $user_id = $path_parts[$model_index + 3] ?? null; // +3 vì có admin/create_message
-$admin_id = $path_parts[$model_index + 4] ?? null;
 
 // Lấy dữ liệu từ request body
 $data = json_decode(file_get_contents('php://input'), true);
 
 // Validate dữ liệu đầu vào
-if (!isset($user_id) || !isset($admin_id) || !isset($data['content'])) {
+if (!isset($user_id) || !isset($data['content'])) {
     echo json_encode([
         'ok' => false,
         'success' => false,
@@ -26,6 +40,20 @@ if (!isset($user_id) || !isset($admin_id) || !isset($data['content'])) {
 }
 
 try {
+    // Kiểm tra admin tồn tại qua API key
+    $admin_sql = "SELECT id FROM admin WHERE api_key = ?";
+    $admin_stmt = $conn->prepare($admin_sql);
+    $admin_stmt->bind_param("s", $api_key);
+    $admin_stmt->execute();
+    $admin_result = $admin_stmt->get_result();
+    
+    if ($admin_result->num_rows === 0) {
+        throw new Exception('API key không hợp lệ!');
+    }
+    
+    $admin = $admin_result->fetch_assoc();
+    $admin_id = $admin['id'];
+
     // Kiểm tra user tồn tại
     $user_sql = "SELECT id FROM users WHERE id = ?";
     $user_stmt = $conn->prepare($user_sql);
@@ -35,18 +63,9 @@ try {
         throw new Exception('Người dùng không tồn tại!');
     }
 
-    // Kiểm tra admin tồn tại
-    $admin_sql = "SELECT id FROM admin WHERE id = ?";
-    $admin_stmt = $conn->prepare($admin_sql);
-    $admin_stmt->bind_param("s", $admin_id);
-    $admin_stmt->execute();
-    if ($admin_stmt->get_result()->num_rows === 0) {
-        throw new Exception('Admin không tồn tại!');
-    }
-
     // Tạo tin nhắn mới
     $message_sql = "INSERT INTO messages (user_id, admin_id, content, sender_type, status, created_at) 
-                    VALUES (?, ?, ?, 'admin', false, NOW())";
+                    VALUES (?, ?, ?, 'admin', true, NOW())";
     $message_stmt = $conn->prepare($message_sql);
     
     $message_stmt->bind_param("sss", 

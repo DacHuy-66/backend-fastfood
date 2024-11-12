@@ -29,7 +29,7 @@ try {
     }
 
     // Cập nhật trạng thái
-    $status = $data['status'] ? 1 : 0; // Đảm bảo giá trị là 0 hoặc 1
+    $status = $data['status'] ? 1 : 0; 
     $update_sql = "UPDATE messages SET status = ? WHERE id = ?";
     $update_stmt = $conn->prepare($update_sql);
     $update_stmt->bind_param("ii", $status, $message_id);

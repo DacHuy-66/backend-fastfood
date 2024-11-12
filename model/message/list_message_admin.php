@@ -14,7 +14,8 @@ try {
                      FROM messages m2 
                      WHERE m2.user_id = u.id 
                        AND m2.status = 1
-                       AND m2.sender_type = 'user') as unread_count
+                       AND m2.sender_type = 'user'
+                       AND m2.admin_id IS NOT NULL) as unread_count
                 FROM users u
                 INNER JOIN messages m ON u.id = m.user_id
                 ORDER BY u.username ASC";

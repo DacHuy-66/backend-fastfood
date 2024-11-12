@@ -29,7 +29,13 @@ try {
     $user_id = $user['id'];
 
     // Query lấy tin nhắn theo user_id
-    $messages_sql = "SELECT m.*, u.username, u.avata, a.username as admin_name
+    $messages_sql = "SELECT m.*, u.username, u.avata, a.username as admin_name,
+                    (SELECT COUNT(*) 
+                     FROM messages m2 
+                     WHERE m2.user_id = m.user_id 
+                       AND m2.status = 1
+                       AND m2.sender_type = 'admin'
+                       AND m2.admin_id IS NOT NULL) as unread_count
                     FROM messages m
                     LEFT JOIN users u ON m.user_id = u.id
                     LEFT JOIN admin a ON m.admin_id = a.id
@@ -57,16 +63,20 @@ try {
             ],
             'admin' => $message['admin_id'] ? [
                 'id' => $message['admin_id'],
-                'username' => $message['admin_name']
+                'username' => $message['admin_name'],
+                'unread_count' => (int)$message['unread_count']
             ] : null
         ];
     }
 
-    $response = [
+    $response = [   
         'ok' => true,
         'success' => true,
         'message' => 'Lấy danh sách tin nhắn thành công',
-        'data' => $messages
+        'data' => $messages,
+        'unread_count' => array_sum(array_column(array_filter($messages, function($message) {
+            return isset($message['admin']) && isset($message['admin']['unread_count']);
+        }), 'admin')['unread_count'] ?? []) // Safely calculate total unread count for admin
     ];
 
     echo json_encode($response);

@@ -796,10 +796,9 @@ elseif (preg_match("/\/message_user$/", $request_uri)) {
 // {
 //     "content": "...",
 // }
-// URL: http://localhost/WebDoAn/main.php/message_admin/user_id/admin_id
-elseif (preg_match("/\/message_admin\/(\w+)\/(\w+)$/", $request_uri, $matches)) {
+// URL: http://localhost/WebDoAn/main.php/message_admin/user_id
+elseif (preg_match("/\/message_admin\/(\w+)$/", $request_uri, $matches)) {
     $user_id = $matches[1];
-    $admin_id = $matches[2];
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/message/create_message_admin.php';
     } else {
@@ -843,14 +842,14 @@ elseif (preg_match("/\/detail_message_user\/(\w+)$/", $request_uri, $matches)) {
     }
 }
 
-// update message status
-// URL: http://localhost/WebDoAn/main.php/message/status/{message_id}
+// fix message 
+// URL: http://localhost/WebDoAn/main.php/message/fix/{message_id}
 // Method: PUT
 // Body: { "status": 0 } // 0: đã đọc, 1: chưa đọc
-elseif (preg_match("/\/message\/status\/(\w+)$/", $request_uri, $matches)) {
+elseif (preg_match("/\/message\/fix\/(\w+)$/", $request_uri, $matches)) {
     $message_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-        include './model/message/update_message_status.php';
+        include './model/message/fix_message.php';
     } else {
         echo json_encode([
             'ok' => false,

@@ -50,7 +50,7 @@ try {
 
     // Tạo tin nhắn mới
     $message_sql = "INSERT INTO messages (user_id, admin_id, content, sender_type, status, created_at) 
-                    VALUES (?, ?, ?, 'user', false, NOW())";
+                    VALUES (?, ?, ?, 'user', true, NOW())";
     $message_stmt = $conn->prepare($message_sql);
     
     $message_stmt->bind_param("sss", 

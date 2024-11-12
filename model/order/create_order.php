@@ -63,20 +63,10 @@ try {
    
    // Xử lý discount history và cập nhật/xóa discount
    if ($discount_code) {
-       // Kiểm tra discount trước
-    //    $check_discount_sql = "SELECT quantity FROM discounts WHERE code = ?";
-    //    $check_stmt = $conn->prepare($check_discount_sql);
-    //    $check_stmt->bind_param("s", $discount_code);
-    //    $check_stmt->execute();
-    //    $discount_result = $check_stmt->get_result()->fetch_assoc();
-
-    //    if (!$discount_result) {
-    //        throw new Exception('Mã giảm giá không tồn tại hoặc đã hết!');
-    //    }
 
        // Thêm vào discount_history với cấu trúc mới
        $insert_history_sql = "INSERT INTO discount_history (user_id, status, Datetime, discount_code) 
-                            VALUES (?, 'used', NOW(), ?)";
+                            VALUES (?, 'Completed', NOW(), ?)";
        $history_stmt = $conn->prepare($insert_history_sql);
        $history_stmt->bind_param("ss", 
            $data['user_id'],
@@ -171,7 +161,6 @@ try {
        $update_product_stmt->execute();
    }
 
-   // Commit transaction
    $conn->commit();
 
    // Lấy thông tin đơn hàng
