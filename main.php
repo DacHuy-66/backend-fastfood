@@ -860,6 +860,28 @@ elseif (preg_match("/\/message\/fix\/(\w+)$/", $request_uri, $matches)) {
     }
 }
 
+// dashboard route
+// url: /main.php/dashboard
+elseif (strpos($request_uri, '/dashboard') !== false) {
+    include './model/dashboard/dashboard.php';
+}
+
+// weekly orders
+// url: /main.php/weekly_orders
+elseif (strpos($request_uri, '/weekly_orders') !== false) {
+    include './model/dashboard/weekly_orders.php';
+}
+
+// weekly revenue
+// url: /main.php/weekly_revenue
+elseif (strpos($request_uri, '/weekly_revenue') !== false) {
+    include './model/dashboard/weekly_revenue.php';
+}
+// top selling products
+// url: /main.php/top_selling_products
+elseif (strpos($request_uri, '/top_selling_products') !== false) {
+    include './model/dashboard/top_selling_products.php';
+}
 else {
     echo json_encode([
         'ok' => false,
