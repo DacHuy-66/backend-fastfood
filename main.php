@@ -79,6 +79,13 @@ elseif (strpos($request_uri, '/register') !== false) {
     }
 }
 
+
+// forgot password
+// url: http://localhost/WebDoAn/main.php/forgotpassword
+elseif (strpos($request_uri, '/forgotpassword') !== false) {
+    include './model/login/forgotPass_user.php';
+}
+
 // address routes
 
 // show address
@@ -882,6 +889,88 @@ elseif (strpos($request_uri, '/weekly_revenue') !== false) {
 elseif (strpos($request_uri, '/top_selling_products') !== false) {
     include './model/dashboard/top_selling_products.php';
 }
+
+
+// statistical route
+// order statistics
+// url: http://localhost/WebDoAn/main.php/order_statistics
+elseif (preg_match("/\/order_statistics$/", $request_uri) || preg_match("/\/order_statistics\?/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // Lấy tham số tìm kiếm từ query string
+        $page = isset($_GET['page']) ? filter_var($_GET['page'], FILTER_VALIDATE_INT, [
+            'options' => ['default' => 1, 'min_range' => 1]
+        ]) : 1;
+
+        $limit = isset($_GET['limit']) ? filter_var($_GET['limit'], FILTER_VALIDATE_INT, [
+            'options' => ['default' => 10, 'min_range' => 1, 'max_range' => 100]
+        ]) : 10;
+
+        // Lọc theo từ khóa tìm kiếm nếu có tham số search
+        $search = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+        // Đảm bảo các biến này có sẵn trong order_statistics.php
+        $_GET['page'] = $page;
+        $_GET['limit'] = $limit;
+        $_GET['q'] = $search;
+
+        include './model/statistical/order_statistics.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
+// product statistics
+// url: http://localhost/WebDoAn/main.php/product_statistics
+elseif (preg_match("/\/product_statistics$/", $request_uri) || preg_match("/\/product_statistics\?/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // Lấy tham số tìm kiếm từ query string
+        $page = isset($_GET['page']) ? filter_var($_GET['page'], FILTER_VALIDATE_INT, [
+            'options' => ['default' => 1, 'min_range' => 1]
+        ]) : 1;
+
+        $limit = isset($_GET['limit']) ? filter_var($_GET['limit'], FILTER_VALIDATE_INT, [
+            'options' => ['default' => 10, 'min_range' => 1, 'max_range' => 100]
+        ]) : 10;
+
+        // Lọc theo từ khóa tìm kiếm nếu có tham số search
+        $search = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+        // Đảm bảo các biến này có sẵn trong product_statistics.php
+        $_GET['page'] = $page;
+        $_GET['limit'] = $limit;
+        $_GET['q'] = $search;
+
+        include './model/statistical/product_statistics.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }   
+}
+
+// user statistics
+// url: http://localhost/WebDoAn/main.php/user_statistics
+elseif (preg_match("/\/user_statistics$/", $request_uri) || preg_match("/\/user_statistics\?/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/statistical/user_statistics.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET request.'
+        ]);
+        http_response_code(405);
+    }
+}
+
 else {
     echo json_encode([
         'ok' => false,

@@ -5,44 +5,64 @@ include_once __DIR__ . '/../../utils/helpers.php';
 Headers();
 
 try {
-    // Tính tổng doanh thu từ total_price của các đơn hàng đã hoàn thành
+    // Lấy tham số thời gian từ request
+    $today = date('Y-m-d');
+    $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : $today;
+    $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : $today;
+
+    // Tính khoảng thời gian trước đó có cùng độ dài để so sánh
+    $date_diff = strtotime($end_date) - strtotime($start_date);
+    $previous_end = date('Y-m-d', strtotime($start_date) - 1);
+    $previous_start = date('Y-m-d', strtotime($previous_end) - $date_diff);
+
+    // Tính tổng doanh thu trong khoảng thời gian hiện tại
     $revenue_sql = "SELECT SUM(total_price) as total_revenue
                 FROM orders 
-                WHERE status = 'completed'";
+                WHERE status = 'completed'
+                AND DATE(created_at) BETWEEN ? AND ?";
     
     $revenue_stmt = $conn->prepare($revenue_sql);
+    $revenue_stmt->bind_param("ss", $start_date, $end_date);
     $revenue_stmt->execute();
     $revenue_result = $revenue_stmt->get_result();
     $revenue_data = $revenue_result->fetch_assoc();
+    $current_revenue = (float)$revenue_data['total_revenue'] ?? 0;
 
-    // Tính tỷ lệ tăng trưởng so với tháng trước
-    $growth_sql = "SELECT 
-                    DATE_FORMAT(created_at, '%Y-%m') as month,
-                    SUM(total_price) as monthly_revenue
-                FROM orders
-                WHERE status = 'completed'
-                AND created_at >= DATE_SUB(CURRENT_DATE, INTERVAL 2 MONTH)
-                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-                ORDER BY month DESC
-                LIMIT 2";
+    // Tính tổng doanh thu trong khoảng thời gian trước đó
+    $previous_stmt = $conn->prepare($revenue_sql);
+    $previous_stmt->bind_param("ss", $previous_start, $previous_end);
+    $previous_stmt->execute();
+    $previous_result = $previous_stmt->get_result();
+    $previous_data = $previous_result->fetch_assoc();
+    $previous_revenue = (float)$previous_data['total_revenue'] ?? 0;
 
-    $growth_stmt = $conn->prepare($growth_sql);
-    $growth_stmt->execute();
-    $growth_result = $growth_stmt->get_result();
-    
-    $monthly_revenues = [];
-    while($row = $growth_result->fetch_assoc()) {
-        $monthly_revenues[] = $row;
+    // Tính phần trăm tăng/giảm
+    $growth_rate = 0;
+    if ($previous_revenue > 0) {
+        $growth_rate = (($current_revenue - $previous_revenue) / $previous_revenue) * 100;
     }
 
-    // Tính tỷ lệ tăng trưởng
-    $growth_rate = 0;
-    if (count($monthly_revenues) == 2) {
-        $current_month = $monthly_revenues[0]['monthly_revenue'];
-        $previous_month = $monthly_revenues[1]['monthly_revenue'];
-        if ($previous_month > 0) {
-            $growth_rate = (($current_month - $previous_month) / $previous_month) * 100;
-        }
+    // Lấy doanh thu theo từng ngày trong khoảng thời gian
+    $daily_revenue_sql = "SELECT 
+                            DATE(created_at) as date,
+                            SUM(total_price) as daily_revenue
+                        FROM orders
+                        WHERE status = 'completed'
+                        AND DATE(created_at) BETWEEN ? AND ?
+                        GROUP BY DATE(created_at)
+                        ORDER BY date ASC";
+
+    $daily_stmt = $conn->prepare($daily_revenue_sql);
+    $daily_stmt->bind_param("ss", $start_date, $end_date);
+    $daily_stmt->execute();
+    $daily_result = $daily_stmt->get_result();
+    
+    $daily_revenues = [];
+    while($row = $daily_result->fetch_assoc()) {
+        $daily_revenues[] = [
+            'date' => $row['date'],
+            'revenue' => (float)$row['daily_revenue']
+        ];
     }
 
     $response = [
@@ -50,9 +70,10 @@ try {
         'success' => true,
         'message' => 'Lấy thống kê doanh thu thành công',
         'data' => [
-            'total_revenue' => (float)$revenue_data['total_revenue'] ?? 0,
-            'growth_rate' => round($growth_rate, 1),
-            'currency' => 'VNĐ'
+            'total_revenue' => $current_revenue,
+            'growth_rate' => round($growth_rate, 1), // Làm tròn đến 1 chữ số thập phân
+            // 'daily_revenues' => $daily_revenues,
+            // 'currency' => 'VNĐ'
         ]
     ];
 

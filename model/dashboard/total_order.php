@@ -5,42 +5,64 @@ include_once __DIR__ . '/../../utils/helpers.php';
 Headers();
 
 try {
-    // Tính tổng số đơn hàng thành công
-    $orders_sql = "SELECT COUNT(*) as total_orders FROM orders WHERE status = 'completed'";
+    // Lấy tham số thời gian từ request
+    $today = date('Y-m-d');
+    $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : $today;
+    $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : $today;
+
+    // Tính khoảng thời gian trước đó có cùng độ dài để so sánh
+    $date_diff = strtotime($end_date) - strtotime($start_date);
+    $previous_end = date('Y-m-d', strtotime($start_date) - 1);
+    $previous_start = date('Y-m-d', strtotime($previous_end) - $date_diff);
+
+    // Tính tổng số đơn hàng trong khoảng thời gian hiện tại
+    $orders_sql = "SELECT COUNT(*) as total_orders 
+                   FROM orders 
+                   WHERE status = 'completed' 
+                   AND DATE(created_at) BETWEEN ? AND ?";
     
     $orders_stmt = $conn->prepare($orders_sql);
+    $orders_stmt->bind_param("ss", $start_date, $end_date);
     $orders_stmt->execute();
     $orders_result = $orders_stmt->get_result();
     $orders_data = $orders_result->fetch_assoc();
+    $current_orders = (int)$orders_data['total_orders'];
 
-    // Tính tỷ lệ tăng trưởng so với tháng trước
-    $growth_sql = "SELECT 
-                    DATE_FORMAT(created_at, '%Y-%m') as month,
-                    COUNT(*) as monthly_orders
-                FROM orders
-                WHERE status = 'completed'
-                AND created_at >= DATE_SUB(CURRENT_DATE, INTERVAL 2 MONTH)
-                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-                ORDER BY month DESC
-                LIMIT 2";
+    // Tính tổng số đơn hàng trong khoảng thời gian trước đó
+    $previous_stmt = $conn->prepare($orders_sql);
+    $previous_stmt->bind_param("ss", $previous_start, $previous_end);
+    $previous_stmt->execute();
+    $previous_result = $previous_stmt->get_result();
+    $previous_data = $previous_result->fetch_assoc();
+    $previous_orders = (int)$previous_data['total_orders'];
 
-    $growth_stmt = $conn->prepare($growth_sql);
-    $growth_stmt->execute();
-    $growth_result = $growth_stmt->get_result();
-    
-    $monthly_orders = [];
-    while($row = $growth_result->fetch_assoc()) {
-        $monthly_orders[] = $row;
+    // Tính phần trăm tăng/giảm
+    $growth_rate = 0;
+    if ($previous_orders > 0) {
+        $growth_rate = (($current_orders - $previous_orders) / $previous_orders) * 100;
     }
 
-    // Tính tỷ lệ tăng trưởng
-    $growth_rate = 0;
-    if (count($monthly_orders) == 2) {
-        $current_month = $monthly_orders[0]['monthly_orders'];
-        $previous_month = $monthly_orders[1]['monthly_orders'];
-        if ($previous_month > 0) {
-            $growth_rate = (($current_month - $previous_month) / $previous_month) * 100;
-        }
+    // Lấy số đơn hàng theo từng ngày
+    $daily_orders_sql = "SELECT 
+                            DATE(created_at) as date,
+                            COUNT(*) as daily_orders
+                        FROM orders
+                        WHERE status = 'completed'
+                        AND DATE(created_at) BETWEEN ? AND ?
+                        GROUP BY DATE(created_at)
+                        ORDER BY date ASC";
+
+    $daily_stmt = $conn->prepare($daily_orders_sql);
+    $daily_stmt->bind_param("ss", $start_date, $end_date);
+    $daily_stmt->execute();
+    $daily_result = $daily_stmt->get_result();
+    
+    $daily_orders = [];
+    while($row = $daily_result->fetch_assoc()) {
+        $daily_orders[] = [
+            'date' => $row['date'],
+            'orders' => (int)$row['daily_orders']
+        ];
     }
 
     $response = [
@@ -48,8 +70,9 @@ try {
         'success' => true,
         'message' => 'Lấy thống kê đơn hàng thành công',
         'data' => [
-            'total_orders' => (int)$orders_data['total_orders'],
-            'growth_rate' => round($growth_rate, 1)
+            'total_orders' => $current_orders,
+            'growth_rate' => round($growth_rate, 1),
+            // 'daily_orders' => $daily_orders
         ]
     ];
 
