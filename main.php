@@ -82,8 +82,14 @@ elseif (strpos($request_uri, '/register') !== false) {
 
 // forgot password
 // url: http://localhost/WebDoAn/main.php/forgotpassword
-elseif (strpos($request_uri, '/forgotpassword') !== false) {
+elseif (preg_match("/\/forgotpassword\$/", $request_uri)) {
     include './model/login/forgotPass_user.php';
+}
+
+// reset password
+// url: http://localhost/WebDoAn/main.php/resetpassword
+elseif (preg_match("/\/resetpassword\$/", $request_uri)) {
+    include './model/login/resetPassword_user.php';
 }
 
 // address routes
