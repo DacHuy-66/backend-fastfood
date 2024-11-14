@@ -44,7 +44,7 @@ elseif (preg_match("/\/delete\$/", $request_uri)) {
 }
 // xem thông tin profile 
 // X-Api-Key:....
-// url http://localhost/WebDoAn/main.php/profile/...
+// url http://localhost/WebDoAn/main.php/profile
 elseif (preg_match("/\/profile\$/", $request_uri)) {
     include './model/profile/profile_user.php';
 }

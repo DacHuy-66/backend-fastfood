@@ -49,8 +49,8 @@ if ($result->num_rows > 0) {
     // kiểm tra xem tất cả các trường bắt buộc có tồn tại không
     if ($new_username  && $new_avata) {
         // chuẩn bị câu truy vấn cập nhật
-        $update_stmt = $conn->prepare("UPDATE users SET username = ?, avata=? WHERE id = ?");
-        $update_stmt->bind_param("ssi", $new_username, $new_avata, $id_user);
+        $update_stmt = $conn->prepare("UPDATE users SET username = ?, avata = ? WHERE id = ? AND api_key = ?");
+        $update_stmt->bind_param("sssi", $new_username, $new_avata, $id_user, $api_key);
 
         if ($update_stmt->execute()) {
         echo json_encode([
