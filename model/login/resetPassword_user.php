@@ -6,18 +6,16 @@ Headers();
 
 // Nhận dữ liệu từ client
 $data = json_decode(file_get_contents("php://input"), true);
-$reset_code = trim($data['reset_code']);
 $new_password = $data['new_password'];
 $email = trim(strtolower($data['email']));
 
 // Debug input data
-error_log("Debug Input - Reset Code: " . $reset_code);
 error_log("Debug Input - Email: " . $email);
 
-// Đầu tiên kiểm tra xem mã reset tồn tại không
-$check_sql = "SELECT * FROM password_resets WHERE reset_code = ? AND email = ?";
+// Kiểm tra email trong bảng password_resets
+$check_sql = "SELECT * FROM password_resets WHERE email = ? ORDER BY created_at DESC LIMIT 1";
 $check_stmt = $conn->prepare($check_sql);
-$check_stmt->bind_param("ss", $reset_code, $email);
+$check_stmt->bind_param("s", $email);
 $check_stmt->execute();
 $check_result = $check_stmt->get_result();
 
@@ -44,10 +42,10 @@ if ($check_result->num_rows > 0) {
         $update_stmt->bind_param("sis", $new_password, $user_id, $email);
         
         if ($update_stmt->execute()) {
-            // Đánh dấu mã code đã được sử dụng
-            $mark_used_sql = "UPDATE password_resets SET used = 1 WHERE reset_code = ? AND email = ?";
+            // Đánh dấu đã sử dụng
+            $mark_used_sql = "UPDATE password_resets SET used = 1 WHERE email = ? AND id = ?";
             $mark_used_stmt = $conn->prepare($mark_used_sql);
-            $mark_used_stmt->bind_param("ss", $reset_code, $email);
+            $mark_used_stmt->bind_param("si", $email, $reset_data['id']);
             $mark_used_stmt->execute();
             
             echo json_encode([
