@@ -10,20 +10,17 @@ $default_avatar = 'https://thumbs.dreamstime.com/b/default-avatar-profile-image-
 
 // lấy api key từ header
 $headers = getallheaders();
-$auth_header = $headers['Authorization'] ?? '';
+$api_key = $headers['X-Authorization'] ?? '';
 
-// kiểm tra xem authorization header có đúng định dạng không
-if (empty($auth_header) || !preg_match('/^Bearer\s+(.+)$/', $auth_header, $matches)) {
+// kiểm tra xem api key có được cung cấp không
+if (empty($api_key)) {
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Authorization header không hợp lệ hoặc bị thiếu.'
+        'message' => 'API key bị thiếu.'
     ]);
     exit;
 }
-
-// lấy api key từ bearer token
-$api_key = $matches[1];
 
 // kiểm tra xem api key có tồn tại trong cơ sở dữ liệu không
 $sql = "SELECT * FROM users WHERE api_key = ?";
