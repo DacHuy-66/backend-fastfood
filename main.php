@@ -46,7 +46,15 @@ elseif (preg_match("/\/delete\$/", $request_uri)) {
 // X-Api-Key:....
 // url http://localhost/WebDoAn/main.php/profile
 elseif (preg_match("/\/profile\$/", $request_uri)) {
-    include './model/profile/profile_user.php';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include './model/profile/profile_user.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use POST request.'
+        ]);
+    }
 }
 
 //đường dẫn đổi mật khẩu
