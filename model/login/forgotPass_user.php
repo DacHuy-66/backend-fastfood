@@ -1,9 +1,7 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
-include_once __DIR__ . '/../../utils/helpers.php';
 
-Headers();
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;

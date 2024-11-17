@@ -1,8 +1,10 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../../logs/php-errors.log');
+
 include_once __DIR__ . '/../../config/db.php';
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: PUT, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 // Xử lý yêu cầu preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -26,7 +28,27 @@ if (empty($product_id)) {
 }
 
 // Lấy dữ liệu JSON từ input
-$data = json_decode(file_get_contents("php://input"), true);
+$input = file_get_contents("php://input");
+if (!$input) {
+    echo json_encode([
+        'ok' => false,
+        'success' => false,
+        'message' => 'Không nhận được dữ liệu input'
+    ]);
+    http_response_code(400);
+    exit;
+}
+
+$data = json_decode($input, true);
+if (json_last_error() !== JSON_ERROR_NONE) {
+    echo json_encode([
+        'ok' => false,
+        'success' => false,
+        'message' => 'Dữ liệu JSON không hợp lệ: ' . json_last_error_msg()
+    ]);
+    http_response_code(400);
+    exit;
+}
 
 // Kiểm tra xem có ít nhất 1 trường được cung cấp không
 if (empty($data) || !is_array($data)) {

@@ -1,10 +1,5 @@
 <?php
-// Kết nối cơ sở dữ liệu
 include_once __DIR__ . '/../../config/db.php';
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
 // Xử lý yêu cầu preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -55,7 +50,7 @@ $review_result = $review_check_stmt->get_result()->fetch_assoc();
 $review_check_stmt->close();
 
 // Kiểm tra xem sản phẩm có các bản ghi liên kết hay không
-$order_check_stmt = $conn->prepare("SELECT COUNT(*) as order_count FROM order_items WHERE product_id = ?");
+$order_check_stmt = $conn->prepare("SELECT COUNT(*) as order_count FROM product_order WHERE product_id = ?");
 $order_check_stmt->bind_param("s", $product_id);
 $order_check_stmt->execute();
 $order_result = $order_check_stmt->get_result()->fetch_assoc();
@@ -68,11 +63,11 @@ $delete_reviews_stmt->bind_param("s", $product_id);
 $delete_reviews_stmt->execute();
 $delete_reviews_stmt->close();
 
-$delete_order_items_query = "DELETE FROM order_items WHERE product_id = ?";
-$delete_order_items_stmt = $conn->prepare($delete_order_items_query);
-$delete_order_items_stmt->bind_param("s", $product_id);
-$delete_order_items_stmt->execute();
-$delete_order_items_stmt->close();
+$delete_product_order_query = "DELETE FROM product_order WHERE product_id = ?";
+$delete_product_order_stmt = $conn->prepare($delete_product_order_query);
+$delete_product_order_stmt->bind_param("s", $product_id);
+$delete_product_order_stmt->execute();
+$delete_product_order_stmt->close();
 
 $delete_cart_query = "DELETE FROM cart WHERE product_id = ?";
 $delete_cart_stmt = $conn->prepare($delete_cart_query);
