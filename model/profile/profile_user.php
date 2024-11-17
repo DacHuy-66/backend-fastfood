@@ -10,7 +10,7 @@ $default_avatar = 'https://thumbs.dreamstime.com/b/default-avatar-profile-image-
 
 // lấy api key từ header
 $headers = getallheaders();
-$api_key = $headers['X-Api-Key'] ?? '';
+$api_key = $headers['Authorization'] ?? '';
 
 // kiểm tra xem api key có được cung cấp không
 if (empty($api_key)) {
