@@ -1,13 +1,4 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method,Access-Control-Request-Headers, Authorization");
-header('Content-Type: application/json');
-
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    header("HTTP/1.1 200 OK");
-    exit();
-}
 
 include_once __DIR__ . '/../../config/db.php';
 
@@ -37,7 +28,7 @@ if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
 
     // Cập nhật vai trò của user thành '1'
-    $update_sql = "UPDATE users SET role = '1' WHERE id = ?";
+    $update_sql = "UPDATE users SET role = '0' WHERE id = ?";
     $update_stmt = $conn->prepare($update_sql);
     $update_stmt->bind_param("s", $user['id']);
     if ($update_stmt->execute()) {

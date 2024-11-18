@@ -40,7 +40,7 @@ elseif (preg_match("/\/profile\/(\w+)$/", $request_uri, $matches)) {
 // http://localhost/WebDoAn/main.php/delete
 
 elseif (preg_match("/\/delete\$/", $request_uri)) {
-    include './model/profile/delete_user.php';
+    include './model/profile/delete_user_client.php';
 }
 // xem thông tin profile 
 // X-Api-Key:....
