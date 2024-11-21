@@ -1,11 +1,6 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
 
-// Handle preflight request
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    header("HTTP/1.1 200 OK");
-    exit();
-}
 
 // Get ID from URL
 $request_uri = $_SERVER['REQUEST_URI'];

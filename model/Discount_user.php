@@ -130,54 +130,24 @@ class DiscountUser
     }
 
     // Read all discount users with pagination
-    public function read($page = 1, $limit = 10, $user_id = null)
+    public function read($user_id, $page = 1, $limit = 40)
     {
         $offset = ($page - 1) * $limit;
-
-        $query = "SELECT 
-                    du.id,
-                    du.name,
-                    du.user_id,
-                    du.code,
-                    du.description,
-                    du.minimum_price,
-                    du.discount_percent,
-                    du.valid_from,
-                    du.valid_to,
-                    du.status,
-                    u.username,
-                    u.email,
-                    CASE 
-                        WHEN CURRENT_DATE() < du.valid_from THEN 'pending'
-                        WHEN CURRENT_DATE() > du.valid_to THEN 'expired'
-                        ELSE 'active'
-                    END as message
-                FROM " . $this->table . " du
-                LEFT JOIN users u ON du.user_id = u.id ";
-
-        if ($user_id) {
-            $query .= "WHERE du.user_id = ? ";
-        }
-
-        $query .= "ORDER BY 
-                    CASE 
-                        WHEN CURRENT_DATE() BETWEEN du.valid_from AND du.valid_to THEN 0
-                        WHEN CURRENT_DATE() < du.valid_from THEN 1
-                        ELSE 2
-                    END,
-                    du.valid_from DESC 
-                    LIMIT ? OFFSET ?";
-
+        
+        $query = "SELECT d.*, u.username, u.email 
+                  FROM " . $this->table . " d
+                  JOIN users u ON d.user_id = u.id 
+                  WHERE d.user_id = ?
+                  ORDER BY d.id DESC 
+                  LIMIT ?, ?";
+                  
         $stmt = $this->conn->prepare($query);
-
-        if ($user_id) {
-            $stmt->bind_param("iii", $user_id, $limit, $offset);
-        } else {
-            $stmt->bind_param("ii", $limit, $offset);
+        $stmt->bind_param("sii", $user_id, $offset, $limit);
+        
+        if ($stmt->execute()) {
+            return $stmt->get_result();
         }
-
-        $stmt->execute();
-        return $stmt->get_result();
+        return false;
     }
 
 
@@ -227,21 +197,18 @@ class DiscountUser
     }
 
     // Get total count
-    public function getTotalCount($user_id = null)
+    public function getTotalCount($user_id)
     {
-        $query = "SELECT COUNT(*) as total FROM " . $this->table;
-
-        if ($user_id) {
-            $query .= " WHERE user_id = ?";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("i", $user_id);
-        } else {
-            $stmt = $this->conn->prepare($query);
+        $query = "SELECT COUNT(*) as total FROM " . $this->table . " WHERE user_id = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("s", $user_id);
+        
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            return $row['total'];
         }
-
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        return $row['total'];
+        return 0;
     }
 
 

@@ -1,13 +1,8 @@
 <?php
 
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
-
 include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../model/Discount_user.php';
-include_once __DIR__ . '/../../utils/helpers.php';
+
 
 // Lấy user_id từ URL
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -32,7 +27,7 @@ try {
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 40;
     
     // Lấy danh sách discount cho user cụ thể
-    $result = $discount_user->read($page, $limit, $user_id);
+    $result = $discount_user->read($user_id, $page, $limit);
     $total_discounts = $discount_user->getTotalCount($user_id);
     $discounts_arr = [];
     
@@ -44,6 +39,10 @@ try {
         // Định dạng ngày
         $valid_from = new DateTime($row['valid_from']);
         $valid_to = new DateTime($row['valid_to']);
+        $now = new DateTime();
+        
+        // Tính trạng thái active dựa trên ngày hiện tại và ngày hết hạn
+        $is_active = $now <= $valid_to && $now >= $valid_from;
         
         $discount_item = [
             'id' => (int)$row['id'],
@@ -57,10 +56,9 @@ try {
             'valid_from' => $valid_from->format('Y-m-d'),
             'valid_to' => $valid_to->format('Y-m-d'),
             'status' => (bool)$row['status'],
-            'message' => $row['message'],
+            'message' => $is_active ? 'active' : 'expired',
             'minimum_price' => (float)$row['minimum_price'],
-            'days_remaining' => $row['message'] === 'active' ? 
-                (new DateTime())->diff($valid_to)->days : 0
+            'days_remaining' => $is_active ? $now->diff($valid_to)->days : 0
         ];
         
         $discounts_arr[] = $discount_item;

@@ -21,8 +21,8 @@ try {
 
     // Validate và lấy thông tin sản phẩm
     $product_details = [];
-    $subtotal = 0;
-    $total_quantity = 0;
+    // $subtotal = 0;
+    // $total_quantity = 0;
 
     // Validate và tính toán thông tin sản phẩm
     foreach ($data['products'] as $product) {
@@ -48,24 +48,27 @@ try {
             throw new Exception("Sản phẩm {$product_info['name']} không đủ số lượng trong kho!");
         }
 
-        $item_subtotal = $product_info['price'] * $product['quantity'];
-        $subtotal += $item_subtotal;
-        $total_quantity += $product['quantity'];
+        // $item_subtotal = $product_info['price'] * $product['quantity'];
+        // $subtotal += $item_subtotal;
+        // $total_quantity += $product['quantity'];
 
         $product_details[] = [
             'product_id' => $product_info['id'],
             'name' => $product_info['name'],
             'price' => $product_info['price'],
-            'quantity' => $product['quantity'],
-            'subtotal' => $item_subtotal
+            'quantity' => $product['quantity']
+            // 'subtotal' => $item_subtotal
         ];
     }
 
     // Tạo order ID
     $order_id = substr(uniqid(), 0, 8);
 
+    // Tính tổng số lượng
+    $total_quantity = array_sum(array_column($product_details, 'quantity'));
+
     $discount_code = $data['discount_code'] ?? null;
-    $discount_amount = 0;
+    // $discount_amount = 0;
 
     // Xử lý discount nếu có
     if ($discount_code) {
@@ -97,13 +100,6 @@ try {
             $discount_info = $user_discount_result->fetch_assoc();
         }
 
-        // // Tính giảm giá
-        // if ($discount_info['discount_type'] == 'percentage') {
-        //     $discount_amount = $subtotal * ($discount_info['discount_value'] / 100);
-        // } else {
-        //     $discount_amount = $discount_info['discount_value'];
-        // }
-
         // Thêm vào discount_history
         $insert_history_sql = "INSERT INTO discount_history (user_id, status, Datetime, discount_code) 
                              VALUES (?, 'Completed', NOW(), ?)";
@@ -127,17 +123,17 @@ try {
         }
     }
 
-    // Tính total_price sau khi áp dụng giảm giá
-    $total_price = $subtotal - $discount_amount;
+    // // Tính total_price sau khi áp dụng giảm giá
+    // $total_price = $subtotal - $discount_amount;
 
-    // Tạo đơn hàng
+    // Tạo đơn hàng - cập nhật theo cấu trúc bảng mới
     $order_sql = "INSERT INTO orders (id, user_id, address_id, quantity, status, reason, note, 
-                 discount_code, total_price, subtotal, review, created_at, updated_at) 
-                 VALUES (?, ?, ?, ?, 'Pending', NULL, ?, ?, ?, ?, 1, NOW(), NOW())";
-
+   discount_code, total_price, subtotal, review, created_at, updated_at) 
+VALUES (?, ?, ?, ?, 'Pending', NULL, ?, ?, ?, ?, 1, NOW(), NOW())";
     $order_stmt = $conn->prepare($order_sql);
     $note = $data['note'] ?? null;
-
+    $total_price = $data['total_price'];
+    $subtotal = $data['subtotal'];
     $order_stmt->bind_param(
         "ssiissdd",
         $order_id,
@@ -248,12 +244,9 @@ try {
             'status' => 'Pending',
             'payment_method' => $payment_method,
             'discount_code' => $discount_code,
-            'discount_amount' => $discount_amount,
-            'subtotal' => $subtotal,
-            'total_price' => $total_price,
             'note' => $note
         ]
-    ]);
+    ]); 
 } catch (Exception $e) {
     // Rollback nếu có lỗi
     $conn->rollback();

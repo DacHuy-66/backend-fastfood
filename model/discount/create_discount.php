@@ -2,7 +2,6 @@
 
 include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../model/Discount.php';
-include_once __DIR__ . '/../../utils/helpers.php';
 
 $discount = new Discount($conn);
 

@@ -1,8 +1,6 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
-include_once __DIR__ . '/../../utils/helpers.php';
 
-Headers();
 
 // Lấy order_id từ URL
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -89,6 +87,7 @@ try {
             $update_stmt->execute();
         }
 
+        $update_product_stmt->execute();
         // Cập nhật trạng thái trong discount_history
         $update_history_sql = "UPDATE discount_history SET status = 'Cancel' 
                              WHERE user_id = ? AND discount_code = ? AND status = 'Completed' 
@@ -96,6 +95,14 @@ try {
         $update_history_stmt = $conn->prepare($update_history_sql);
         $update_history_stmt->bind_param("ss", $order['user_id'], $order['discount_code']);
         $update_history_stmt->execute();
+
+        // Cập nhật số lượng kho cho từng sản phẩm
+        while ($product_item = $products_result->fetch_assoc()) {
+            $update_stock_sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
+            $update_stock_stmt = $conn->prepare($update_stock_sql);
+            $update_stock_stmt->bind_param("is", $product_item['quantity'], $product_item['product_id']);
+            $update_stock_stmt->execute();
+        }
     }
 
     // Cập nhật trạng thái đơn hàng và review nếu status là Cancel

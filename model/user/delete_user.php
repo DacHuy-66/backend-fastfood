@@ -34,6 +34,16 @@ try {
     $delete_reviews_stmt->bind_param("s", $user_id);
     $delete_reviews_stmt->execute();
 
+    $delete_product_order_query = "DELETE FROM product_order WHERE order_id IN (SELECT id FROM orders WHERE user_id = ?)";
+    $delete_product_order_stmt = $conn->prepare($delete_product_order_query);
+    $delete_product_order_stmt->bind_param("s", $user_id);
+    $delete_product_order_stmt->execute();
+
+    $delete_payments_query = "DELETE FROM payments WHERE order_id IN (SELECT id FROM orders WHERE user_id = ?)";
+    $delete_payments_stmt = $conn->prepare($delete_payments_query);
+    $delete_payments_stmt->bind_param("s", $user_id);
+    $delete_payments_stmt->execute();
+
     $delete_orders_query = "DELETE FROM orders WHERE user_id = ?";
     $delete_orders_stmt = $conn->prepare($delete_orders_query);
     $delete_orders_stmt->bind_param("s", $user_id);
@@ -58,6 +68,11 @@ try {
     $delete_detail_address_stmt = $conn->prepare($delete_detail_address_query);
     $delete_detail_address_stmt->bind_param("s", $user_id);
     $delete_detail_address_stmt->execute();
+
+    $delete_messages_query = "DELETE FROM messages WHERE user_id = ?";
+    $delete_messages_stmt = $conn->prepare($delete_messages_query);
+    $delete_messages_stmt->bind_param("s", $user_id);
+    $delete_messages_stmt->execute();
 
     // Chuẩn bị câu truy vấn xóa user
     $query = "DELETE FROM users WHERE id = ?";

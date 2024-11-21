@@ -1,7 +1,6 @@
 <?php
 include_once __DIR__ . '/../../config/db.php';
 include_once __DIR__ . '/../../model/Discount_history.php';
-include_once __DIR__ . '/../../utils/helpers.php';
 
 $discount_history = new DiscountHistory($conn);
 
