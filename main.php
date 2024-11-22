@@ -691,21 +691,23 @@ elseif (preg_match("/\/order_detail\/(\w+)$/", $request_uri, $matches)) {
 
 //create order
 // {
-//     "user_id": "672f0ed7ad5ce",
-//     "address_id": "54",
+//     "user_id": "673b44eda483f",
+//     "address_id": "73",
 //     "products": [
 //         {
-//             "product_id": "P020",
+//             "product_id": "1",
 //             "quantity": 2
 //         },
 //         {
-//             "product_id": "P021",
+//             "product_id": "10",
 //             "quantity": 1
 //         }
 //     ],
-//     "payment_method": "COD",
-//     "note": "Giao hàng giờ hành chính",     // tùy chọn
-//     "discount_code": "SALE10"               // tùy chọn
+//     "total_price":"100000",
+//     "subtotal":"10000",
+//     "payment_method": "cash",
+//     "note": "Giao hàng giờ hành chính",     
+//     "discount_code": "BT3TD1VU"               
 // }
 // URL: http://localhost/WebDoAn/main.php/order/create
 elseif (preg_match("/\/order\/create$/", $request_uri)) {

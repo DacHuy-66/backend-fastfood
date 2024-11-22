@@ -72,32 +72,33 @@ try {
 
     // Xử lý discount nếu có
     if ($discount_code) {
-        // Kiểm tra discount cho user cụ thể
-        $check_user_discount_sql = "SELECT d.* FROM discount_user du 
-                                  JOIN discounts d ON du.code = d.code 
-                                  WHERE du.code = ? AND du.user_id = ? 
-                                  AND d.valid_from <= NOW() AND d.valid_to >= NOW()";
+        // Kiểm tra discount cho user cụ thể - chỉ kiểm tra trong bảng discount_user
+        $check_user_discount_sql = "SELECT * FROM discount_user 
+                                  WHERE code = ? AND user_id = ?";
         $check_user_stmt = $conn->prepare($check_user_discount_sql);
         $check_user_stmt->bind_param("ss", $discount_code, $data['user_id']);
         $check_user_stmt->execute();
         $user_discount_result = $check_user_stmt->get_result();
 
         if ($user_discount_result->num_rows === 0) {
-            // Kiểm tra discount chung
-            $check_general_discount_sql = "SELECT * FROM discounts 
-                                         WHERE code = ? AND quantity > 0 
-                                         AND valid_from <= NOW() AND valid_to >= NOW()";
+            // Kiểm tra và cập nhật discount chung
+            $check_general_discount_sql = "SELECT * FROM discounts WHERE code = ? 
+                                         AND valid_from <= NOW() AND valid_to >= NOW() 
+                                         AND quantity > 0";
             $check_general_stmt = $conn->prepare($check_general_discount_sql);
             $check_general_stmt->bind_param("s", $discount_code);
             $check_general_stmt->execute();
             $general_discount_result = $check_general_stmt->get_result();
 
-            if ($general_discount_result->num_rows === 0) {
+            if ($general_discount_result->num_rows > 0) {
+                // Giảm số lượng discount chung
+                $update_sql = "UPDATE discounts SET quantity = quantity - 1 WHERE code = ? AND quantity > 0";
+                $update_stmt = $conn->prepare($update_sql);
+                $update_stmt->bind_param("s", $discount_code);
+                $update_stmt->execute();
+            } else {
                 throw new Exception('Mã giảm giá không hợp lệ hoặc đã hết hạn!');
             }
-            $discount_info = $general_discount_result->fetch_assoc();
-        } else {
-            $discount_info = $user_discount_result->fetch_assoc();
         }
 
         // Thêm vào discount_history
@@ -106,21 +107,6 @@ try {
         $history_stmt = $conn->prepare($insert_history_sql);
         $history_stmt->bind_param("ss", $data['user_id'], $discount_code);
         $history_stmt->execute();
-
-        // Cập nhật hoặc xóa discount
-        if ($user_discount_result->num_rows > 0) {
-            // Xóa discount user
-            $delete_sql = "DELETE FROM discount_user WHERE code = ? AND user_id = ?";
-            $delete_stmt = $conn->prepare($delete_sql);
-            $delete_stmt->bind_param("ss", $discount_code, $data['user_id']);
-            $delete_stmt->execute();
-        } else {
-            // Giảm số lượng discount chung
-            $update_sql = "UPDATE discounts SET quantity = quantity - 1 WHERE code = ? AND quantity > 0";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("s", $discount_code);
-            $update_stmt->execute();
-        }
     }
 
     // // Tính total_price sau khi áp dụng giảm giá
@@ -246,7 +232,7 @@ VALUES (?, ?, ?, ?, 'Pending', NULL, ?, ?, ?, ?, 1, NOW(), NOW())";
             'discount_code' => $discount_code,
             'note' => $note
         ]
-    ]); 
+    ]);
 } catch (Exception $e) {
     // Rollback nếu có lỗi
     $conn->rollback();

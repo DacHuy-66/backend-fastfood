@@ -44,8 +44,41 @@ if ($result->num_rows === 0) {
 try {
     $conn->begin_transaction();
 
-    // Nếu status là Completed - cập nhật số lượng đã bán của sản phẩm
+    // Nếu status là Completed - cập nhật số lượng đã bán của sản phẩm và xử lý discount
     if ($status === 'Completed') {
+        // Xử lý discount nếu đơn hàng có discount code
+        if (!empty($order['discount_code'])) {
+            // Kiểm tra xem discount có phải của user cụ thể không
+            $check_user_discount_sql = "SELECT * FROM discount_user WHERE code = ? AND user_id = ?";
+            $check_user_stmt = $conn->prepare($check_user_discount_sql);
+            $check_user_stmt->bind_param("ss", $order['discount_code'], $order['user_id']);
+            $check_user_stmt->execute();
+            $user_discount_result = $check_user_stmt->get_result();
+
+            if ($user_discount_result->num_rows > 0) {
+                // Xóa discount user vì đơn hàng đã hoàn thành
+                $delete_sql = "DELETE FROM discount_user WHERE code = ? AND user_id = ?";
+                $delete_stmt = $conn->prepare($delete_sql);
+                $delete_stmt->bind_param("ss", $order['discount_code'], $order['user_id']);
+                $delete_stmt->execute();
+            } 
+            // else {
+            //     // Giảm số lượng discount chung
+            //     $update_sql = "UPDATE discounts SET quantity = quantity - 1 WHERE code = ? AND quantity > 0";
+            //     $update_stmt = $conn->prepare($update_sql);
+            //     $update_stmt->bind_param("s", $order['discount_code']);
+            //     $update_stmt->execute();
+            // }
+
+            // // Cập nhật trạng thái trong discount_history
+            // $update_history_sql = "UPDATE discount_history SET status = 'Completed' 
+            //                      WHERE user_id = ? AND discount_code = ? AND status = 'Pending' 
+            //                      ORDER BY Datetime DESC LIMIT 1";
+            // $update_history_stmt = $conn->prepare($update_history_sql);
+            // $update_history_stmt->bind_param("ss", $order['user_id'], $order['discount_code']);
+            // $update_history_stmt->execute();
+        }
+
         // Lấy danh sách sản phẩm trong đơn hàng từ bảng product_order
         $get_products_sql = "SELECT product_id, quantity FROM product_order WHERE order_id = ?";
         $get_products_stmt = $conn->prepare($get_products_sql);
@@ -71,15 +104,7 @@ try {
         $check_user_stmt->execute();
         $user_discount_result = $check_user_stmt->get_result();
 
-        if ($user_discount_result->num_rows > 0) {
-            // Nếu là discount của user cụ thể - thêm lại vào discount_user
-            $insert_sql = "INSERT INTO discount_user (user_id, code, email, description, discount_percent, valid_from, valid_to, status) 
-                          SELECT ?, code, email, description, discount_percent, valid_from, valid_to, status 
-                          FROM discount_user WHERE code = ? LIMIT 1";
-            $insert_stmt = $conn->prepare($insert_sql);
-            $insert_stmt->bind_param("ss", $order['user_id'], $order['discount_code']);
-            $insert_stmt->execute();
-        } else {
+        if ($user_discount_result->num_rows === 0) {
             // Nếu là discount chung - tăng số lượng
             $update_sql = "UPDATE discounts SET quantity = quantity + 1 WHERE code = ?";
             $update_stmt = $conn->prepare($update_sql);
@@ -87,7 +112,6 @@ try {
             $update_stmt->execute();
         }
 
-        $update_product_stmt->execute();
         // Cập nhật trạng thái trong discount_history
         $update_history_sql = "UPDATE discount_history SET status = 'Cancel' 
                              WHERE user_id = ? AND discount_code = ? AND status = 'Completed' 
@@ -95,6 +119,13 @@ try {
         $update_history_stmt = $conn->prepare($update_history_sql);
         $update_history_stmt->bind_param("ss", $order['user_id'], $order['discount_code']);
         $update_history_stmt->execute();
+
+        // Lấy danh sách sản phẩm trong đơn hàng
+        $get_products_sql = "SELECT product_id, quantity FROM product_order WHERE order_id = ?";
+        $get_products_stmt = $conn->prepare($get_products_sql);
+        $get_products_stmt->bind_param("s", $order_id);
+        $get_products_stmt->execute();
+        $products_result = $get_products_stmt->get_result();
 
         // Cập nhật số lượng kho cho từng sản phẩm
         while ($product_item = $products_result->fetch_assoc()) {
