@@ -987,6 +987,44 @@ elseif (preg_match("/\/user_statistics$/", $request_uri) || preg_match("/\/user_
     }
 }
 
+// favorites
+// list favorites
+// url: http://localhost/WebDoAn/main.php/favorites/user_id
+
+// delete favorites
+// url: http://localhost/WebDoAn/main.php/favorites/favorite_id
+elseif (preg_match("/\/favorites\/(\w+)$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        include './model/favorites/list_favorites.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        include './model/favorites/delete_favorite.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use GET or DELETE request.'
+        ]);
+    }
+}
+
+// create favorites
+// {
+//     "user_id": "673b44eda483f",
+//     "product_id": "1"
+// }
+// url: http://localhost/WebDoAn/main.php/favorites
+elseif (preg_match("/\/favorites$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include './model/favorites/create_favorites.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use POST request.'
+        ]);
+    }
+}
+
 else {
     echo json_encode([
         'ok' => false,

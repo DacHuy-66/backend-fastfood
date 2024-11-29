@@ -81,55 +81,81 @@ elseif (preg_match("/\/home\/body\/(\w+)$/", $request_uri)) {
 }
 
 // fix footer
+
+// fix company info
 // {
-//     "company_info": {
-//         "name": "FastFood",
-//         "logo": "new_logo.png",
-//         "description": "Hương vị tuyệt vời",
-//         "copyright_text": "© 2024 FastFood. All rights reserved."
-//     },
-//     "social_media": [
-//         {
-//             "id": 1,
-//             "platform": "facebook",
-//             "icon": "FaFacebookF",
-//             "url": "https://facebook.com/fastfood"
-//         }
-//     ],
-//     "contact_info": [
-//         {
-//             "id": 2,
-//             "title": "Địa chỉ",
-//             "icon": "IoIosMap",
-//             "content": "123 Đường Ẩm Thực, Q.1, TP.HCM",
-//             "type": "address"
-//         }
-//     ]
+//     "name": "",
+//     "description": "",
+//     "copyright_text": ""
 // }
-// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/footer
-elseif (preg_match("/\/footer\$/", $request_uri)) {
-    include 'footer/fix_footer.php';
+// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/footer/company
+elseif (preg_match("/\/footer\/company\$/", $request_uri)) {
+    include 'footer/fix_company_info.php';
 }
 
+// fix social media
+// {
+//     "platform": "",
+//     "icon": "",
+//     "url": ""
+// }
+// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/footer/social/1
+elseif (preg_match("/\/footer\/social\/(\w+)$/", $request_uri)) {
+    include 'footer/fix_social_media.php';
+}
 
-// fix about
+// fix contact info
+// {
+//     "title": "",
+//     "icon": "",
+//     "content": "",
+//     "type": ""
+// }
+// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/footer/contact/1
+elseif (preg_match("/\/footer\/contact\/(\w+)$/", $request_uri)) {
+    include 'footer/fix_contact_info.php';
+}
+
+// fix about head
 // {
 //     "head_review": {
 //       "id": 1,
 //       "name": "Về Fastfood",
 //       "description": "Thưởng thức hương vị nhanh chóng, ngon miệng"
 //     },
-//     "body_review": {
-//       "id": 2,
-//       "name": "Câu Chuyện Của Chúng Tôi",
-//       "description": "Fastfood được thành lập vào năm 2010...",
-//       "icon": "FaUtensils"
-//     }
-//   }
-// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/about
-elseif (preg_match("/\/about\$/", $request_uri)) {
-    include 'abouts/fix_about.php';
+// }
+// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/about/head/1
+elseif (preg_match("/\/about\/head\/(\w+)$/", $request_uri)) {
+    include 'abouts/fix_about_head.php';
 }
+
+// fix about 
+
+//fix body review main
+// {
+//     "name": "",
+//     "description": "",
+//     "icon": ""
+// }
+// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/about/body_main/1
+elseif (preg_match("/\/about\/body_main\/(\w+)$/", $request_uri)) {
+    include 'abouts/fix_body_review_main.php';
+}
+
+// delete body review extra
+//fix body review extra
+// create body review extra
+// {
+//     "name": "",
+//     "description": "",
+//     "icon": ""
+// }
+// url: http://localhost/WebDoAn/model/ui_client/main_ui.php/about/body/extra/5
+elseif (preg_match("/\/about\/body\/extra\/(\w+)$/", $request_uri)) {
+    include 'abouts/fix_body_review_extra.php';
+}
+
+
 
 else {
     echo json_encode([
