@@ -2,20 +2,25 @@
 include_once __DIR__ . '/../../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Lấy user_id từ URL
+    $url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $path_parts = explode('/', $url_path);
+    $user_id = end($path_parts);
+
+    // Lấy product_id từ body
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
     // Kiểm tra dữ liệu đầu vào
-    if (!isset($data['user_id']) || !isset($data['product_id'])) {
+    if (!isset($data['product_id'])) {
         echo json_encode([
             'ok' => false,
             'success' => false,
-            'message' => 'Thiếu thông tin user_id hoặc product_id'
+            'message' => 'Thiếu thông tin product_id'
         ]);
         exit;
     }
 
-    $user_id = trim($data['user_id']);
     $product_id = trim($data['product_id']);
 
     try {

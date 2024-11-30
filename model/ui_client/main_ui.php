@@ -101,7 +101,13 @@ elseif (preg_match("/\/footer\/company\$/", $request_uri)) {
 // }
 // url: http://localhost/WebDoAn/model/ui_client/main_ui.php/footer/social/1
 elseif (preg_match("/\/footer\/social\/(\w+)$/", $request_uri)) {
-    include 'footer/fix_social_media.php';
+    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        include 'footer/fix_social_media.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        include 'footer/delete_social_media.php';
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include 'footer/create_social_media.php';
+    }
 }
 
 // fix contact info
@@ -113,8 +119,15 @@ elseif (preg_match("/\/footer\/social\/(\w+)$/", $request_uri)) {
 // }
 // url: http://localhost/WebDoAn/model/ui_client/main_ui.php/footer/contact/1
 elseif (preg_match("/\/footer\/contact\/(\w+)$/", $request_uri)) {
-    include 'footer/fix_contact_info.php';
+    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        include 'footer/fix_contact_info.php';
+    }elseif($_SERVER['REQUEST_METHOD'] === 'DELETE'){
+        include 'footer/delete_contact_info.php';
+    }elseif($_SERVER['REQUEST_METHOD'] === 'POST'){
+        include 'footer/create_contact_info.php';
+    }
 }
+
 
 // fix about head
 // {

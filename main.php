@@ -969,7 +969,7 @@ elseif (preg_match("/\/product_statistics$/", $request_uri) || preg_match("/\/pr
             'message' => 'Method not allowed. Use GET request.'
         ]);
         http_response_code(405);
-    }   
+    }
 }
 
 // user statistics
@@ -1012,8 +1012,9 @@ elseif (preg_match("/\/favorites\/(\w+)$/", $request_uri)) {
 //     "user_id": "673b44eda483f",
 //     "product_id": "1"
 // }
-// url: http://localhost/WebDoAn/main.php/favorites
-elseif (preg_match("/\/favorites$/", $request_uri)) {
+// url: http://localhost/WebDoAn/main.php/favorites/create/user_id
+elseif (preg_match("/\/favorites\/create\/(\w+)$/", $request_uri, $matches)) {
+    $user_id = $matches[1];
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include './model/favorites/create_favorites.php';
     } else {
@@ -1025,7 +1026,36 @@ elseif (preg_match("/\/favorites$/", $request_uri)) {
     }
 }
 
-else {
+// create guest order
+// {
+//     "name": "...",
+//     "phone": "...",
+//     "email": "...",
+//     "address": "...",
+//     "quantity": "...",
+//     "product_details": [
+//         {
+//             "product_id": "...",
+//             "quantity": "..."
+//         }
+//     ],
+//     "note": "...",
+//     "discount_code": "...",
+//     "total_price": "...",
+//     "subtotal": "..."
+// }
+// url: http://localhost/WebDoAn/main.php/guest_order
+elseif (preg_match("/\/guest_order$/", $request_uri)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        include './model/order/create_guest_order.php';
+    } else {
+        echo json_encode([
+            'ok' => false,
+            'success' => false,
+            'message' => 'Method not allowed. Use POST request.'
+        ]);
+    }
+} else {
     echo json_encode([
         'ok' => false,
         'success' => false,
